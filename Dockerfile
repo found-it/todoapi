@@ -10,5 +10,6 @@ RUN dotnet publish -c Release -o out
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1
 WORKDIR /app
 EXPOSE 80
+EXPOSE 443
 COPY --from=build /app/out ./
 ENTRYPOINT ["dotnet", "todo.dll"]
