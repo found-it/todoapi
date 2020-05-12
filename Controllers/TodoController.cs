@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace todo.Controllers
+namespace TodoApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
@@ -30,13 +30,13 @@ namespace todo.Controllers
         [HttpGet]
         public string Get()
         {
-            TodoTasks[] todos = new TodoTasks[3];
+            TodoItem[] todos = new TodoItem[3];
             for (int i = 0; i < 3; ++i)
             {
-                todos[i] = new TodoTasks
+                todos[i] = new TodoItem
                 {
-                    Status = "TODO",
-                    Task = UnfinishedTasks[i],
+                    Complete = false,
+                    Name = UnfinishedTasks[i],
                     Id = i
                 };
             }
