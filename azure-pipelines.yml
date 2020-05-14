@@ -10,21 +10,35 @@ resources:
 
 variables:
   # Container registry service connection established during pipeline creation
-  dockerRegistryServiceConnection: 'c6337cf5-2e7b-4db4-b4a1-0d0d7cc18bb9'
-  imageRepository: 'todoapi'
-  containerRegistry: 'anchoredemo.azurecr.io'
-  dockerfilePath: 'Dockerfile'
-  tag: '$(Build.BuildId)'
-  
+  - name: dockerRegistryServiceConnection
+    value: anchoredemo
+    #value: 'c6337cf5-2e7b-4db4-b4a1-0d0d7cc18bb9'
+  - name: imageRepository
+    value: 'todoapi'
+  - name: containerRegistry
+    value: 'anchoredemo.azurecr.io'
+  - name: dockerfilePath
+    value: 'Dockerfile'
+  - name: tag
+    value: '$(Build.BuildId)'
+
   # Agent VM image name
-  vmImageName: 'ubuntu-latest'
+  - name: vmImageName
+    value: 'ubuntu-latest'
+
+  # Anchore stuff
+  - name: anchoreUser
+    value: 'admin'
+  - name: anchoreUrl
+    value: 'http://168.61.69.162/v1/'
+  - group: AnchoreCreds
 
 stages:
-- stage: Build
+- stage: Staging
   displayName: Build and push stage
-  jobs:  
-  - job: Build
-    displayName: Build
+  jobs:
+  - job: Staging
+    displayName: Staging
     pool:
       vmImage: $(vmImageName)
     steps:
@@ -37,9 +51,18 @@ stages:
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
           $(tag)
+
+- stage: Scan
+  displayName: Build and push stage
+  jobs:
+  - job: Scan
+    displayName: Scan
+    pool:
+      name: 'Default'
+    steps:
     - task: AnchoreEnterprise@0
       inputs:
-        image: 'anchoredemo.azurecr.io/todoapi:$(tag)'
-        url: 'http://168.61.69.162/v1/'
-        username: 'admin'
-        password: 'FAkeKeY'
+        image: '$(containerRegistry)/$(imageRepository):$(tag)'
+        url: $(anchoreUrl)
+        username: $(anchoreUser)
+        password: $(anchorepass)
