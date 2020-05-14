@@ -76,6 +76,7 @@ stages:
 
 - stage: Production
   displayName: Push to production registry
+  dependsOn: Scan
   jobs:
   - job: Production
     displayName: Production
@@ -91,3 +92,5 @@ stages:
         containerRegistry: $(acrProdServiceConnection)
         tags: |
           $(tag)
+
+# TODO: Deploy
