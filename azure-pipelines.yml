@@ -10,13 +10,18 @@ resources:
 
 variables:
   # Container registry service connection established during pipeline creation
-  - name: dockerRegistryServiceConnection
-    value: anchoredemo
-    #value: 'c6337cf5-2e7b-4db4-b4a1-0d0d7cc18bb9'
+  - name: acrProdServiceConnection
+    value: demoProduction
+  - name: prodRegistry
+    value: 'anchoredemo.azurecr.io'
+
+  - name: acrStagingServiceConnection
+    value: demoStaging
+  - name: stagingRegistry
+    value: 'demostaging.azurecr.io'
+
   - name: imageRepository
     value: 'todoapi'
-  - name: containerRegistry
-    value: 'anchoredemo.azurecr.io'
   - name: dockerfilePath
     value: 'Dockerfile'
   - name: tag
@@ -32,10 +37,11 @@ variables:
   - name: anchoreUrl
     value: 'http://168.61.69.162/v1/'
   - group: AnchoreCreds
+    # anchorepass ^
 
 stages:
 - stage: Staging
-  displayName: Build and push stage
+  displayName: Build and push to staging registry
   jobs:
   - job: Staging
     displayName: Staging
@@ -48,12 +54,13 @@ stages:
         command: buildAndPush
         repository: $(imageRepository)
         dockerfile: $(dockerfilePath)
-        containerRegistry: $(dockerRegistryServiceConnection)
+        containerRegistry: $(acrStagingServiceConnection)
         tags: |
           $(tag)
 
 - stage: Scan
-  displayName: Build and push stage
+  displayName: Scan the staged image
+  dependsOn: Staging
   jobs:
   - job: Scan
     displayName: Scan
@@ -62,7 +69,25 @@ stages:
     steps:
     - task: AnchoreEnterprise@0
       inputs:
-        image: '$(containerRegistry)/$(imageRepository):$(tag)'
+        image: '$(stagingRegistry)/$(imageRepository):$(tag)'
         url: $(anchoreUrl)
         username: $(anchoreUser)
         password: $(anchorepass)
+
+- stage: Production
+  displayName: Push to production registry
+  jobs:
+  - job: Production
+    displayName: Production
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(acrProdServiceConnection)
+        tags: |
+          $(tag)
