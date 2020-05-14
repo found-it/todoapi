@@ -95,4 +95,4 @@ stages:
         tags: |
           $(tag)
 
-# TODO: Deploy
+# TODO: Deploy Application
