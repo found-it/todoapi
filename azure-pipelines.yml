@@ -77,7 +77,7 @@ stages:
         url: $(anchoreUrl)
         username: $(anchoreUser)
         password: $(anchorepass)
-        # Add dockerfile option
+        dockerfile: Dockerfile
 
 - stage: Production
   displayName: Push to production registry
