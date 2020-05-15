@@ -39,7 +39,7 @@ variables:
   - name: anchoreUser
     value: 'admin'
   - name: anchoreUrl
-    value: 'http://168.61.69.162/v1/'
+    value: 'http://23.100.36.77/v1/'
   - group: AnchoreCreds
     # anchorepass ^
 
