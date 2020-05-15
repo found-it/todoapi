@@ -3,7 +3,7 @@
 # Azure Pipeline for Todo API Server
 #
 # Displays usage of the Anchore integration with Azure DevOps
-#
+# 
 ####
 
 trigger:
