@@ -1,2 +1,6 @@
 bin\
 obj\
+README.md
+azure-pipelines.yml
+azure-pipelines.yaml
+Dockerfile*
