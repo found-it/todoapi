@@ -53,45 +53,45 @@ variables:
     value: 'todoapi'
 
 stages:
-# - stage: Staging
-#   displayName: Build and push to staging registry
-#   jobs:
-#   - job: Staging
-#     displayName: Staging
-#     pool:
-#       name: 'Default'
-#       # vmImage: $(vmImageName)
-#     steps:
-#     - task: Docker@2
-#       displayName: Build and push an image to container registry
-#       inputs:
-#         command: buildAndPush
-#         repository: $(imageRepository)
-#         dockerfile: $(dockerfilePath)
-#         containerRegistry: $(acrStagingServiceConnection)
-#         tags: |
-#           $(tag)
-#
-# - stage: Scan
-#   displayName: Scan the staged image
-#   dependsOn: Staging
-#   jobs:
-#   - job: Scan
-#     displayName: Scan
-#     pool:
-#       name: 'Default'
-#     steps:
-#     - task: AnchoreEnterprise@0
-#       inputs:
-#         image: '$(stagingRegistry)/$(imageRepository):$(tag)'
-#         url: $(anchoreUrl)
-#         username: $(anchoreUser)
-#         password: $(anchorepass)
-#         dockerfile: Dockerfile
+- stage: Staging
+  displayName: Build and push to staging registry
+  jobs:
+  - job: Staging
+    displayName: Staging
+    pool:
+      name: 'Default'
+      # vmImage: $(vmImageName)
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(acrStagingServiceConnection)
+        tags: |
+          $(tag)
+
+- stage: Scan
+  displayName: Scan the staged image
+  dependsOn: Staging
+  jobs:
+  - job: Scan
+    displayName: Scan
+    pool:
+      name: 'Default'
+    steps:
+    - task: AnchoreEnterprise@0
+      inputs:
+        image: '$(stagingRegistry)/$(imageRepository):$(tag)'
+        url: $(anchoreUrl)
+        username: $(anchoreUser)
+        password: $(anchorepass)
+        dockerfile: Dockerfile
 
 - stage: Production
   displayName: Push to production registry
-  # dependsOn: Scan
+  dependsOn: Scan
   jobs:
   - job: Production
     displayName: Production
