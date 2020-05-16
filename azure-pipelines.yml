@@ -30,6 +30,8 @@ variables:
     value: 'Dockerfile'
   - name: tag
     value: '$(Build.BuildId)'
+  - name: prodImage
+    value: '$(prodRegistry)/$(imageRepository)'
 
   # Agent VM image name
   - name: vmImageName
@@ -147,5 +149,5 @@ stages:
               imagePullSecrets: |
                 $(k8sImagePullSecret)
               containers: |
-                '$(prodRegistry)/$(imageRepository):$(tag)'
+                $(prodImage):$(tag)
               kubernetesServiceConnection: $(clusterName)
