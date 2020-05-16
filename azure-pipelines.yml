@@ -89,7 +89,7 @@ stages:
 
 - stage: Production
   displayName: Push to production registry
-  dependsOn: Scan
+  # dependsOn: Scan
   jobs:
   - job: Production
     displayName: Production
