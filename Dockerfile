@@ -3,8 +3,8 @@ FROM localhost/redhat/ubi/ubi8:8.2
 ENV DOTNET_ROOT=$HOME/dotnet
 ENV PATH=$PATH:$DOTNET_ROOT
 
-COPY /home/agent/dotnet/aspnetcore-runtime-3.1.4-linux-x64.tar.gz /tmp/
-COPY /home/agent/dotnet/dotnet-sdk-3.1.202-linux-x64.tar.gz /tmp/
+COPY ./aspnetcore-runtime-3.1.4-linux-x64.tar.gz /tmp/
+COPY ./dotnet-sdk-3.1.202-linux-x64.tar.gz /tmp/
 
 RUN yum install -y lttng-ust libcurl openssl-libs krb5-libs libicu zlib && \
     mkdir -p $DOTNET_ROOT && \

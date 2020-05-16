@@ -53,6 +53,9 @@ stages:
       name: 'Default'
       # vmImage: $(vmImageName)
     steps:
+    - script: |
+        cp /home/agent/aspnetcore-runtime-3.1.4-linux-x64.tar.gz $(Agent.BuildDirectory)
+        cp /home/agent/dotnet-sdk-3.1.202-linux-x64.tar.gz $(Agent.BuildDirectory)
     - task: Docker@2
       displayName: Build and push an image to container registry
       inputs:
