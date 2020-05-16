@@ -43,6 +43,13 @@ variables:
   - group: AnchoreCreds
     # anchorepass ^
 
+  - name: k8sImagePullSecret
+    value: 'demo-pull-secret'
+  - name: clusterName
+    value: 'demo'
+  - name: namespace
+    value: 'todoapi'
+
 stages:
 - stage: Staging
   displayName: Build and push to staging registry
@@ -100,4 +107,45 @@ stages:
         tags: |
           $(tag)
 
-# TODO: Deploy Application
+    - task: PublishPipelineArtifact@1
+      inputs:
+        artifactName: 'manifests'
+        path: 'manifests'
+
+- stage: Deploy
+  displayName: Deploy to AKS
+  dependsOn: Production
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy to AKS
+    environment: $(clusterName).todoapi
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifactName: 'manifests'
+              downloadPath: '$(System.ArtifactsDirectory)/manifests'
+
+          - task: KubernetesManifest@0
+            displayName: Create secret to pull image
+            inputs:
+              action: createSecret
+              secretName: $(k8sImagePullSecret)
+              dockerRegistryEndpoint: $(acrProdServiceConnection)
+              kubernetesServiceConnection: $(clusterName)
+
+          - task: KubernetesManifest@0
+            displayName: Deploy to AKS
+            inputs:
+              action: deploy
+              namespace: $(namespace)
+              manifests: |
+                $(System.ArtifactsDirectory)/manifests/deploy.yaml
+                $(System.ArtifactsDirectory)/manifests/svc.yaml
+              imagePullSecrets: |
+                $(imagePullSecret)
+              containers: |
+                '$(prodRegistry)/$(imageRepository):$(tag)'
+              kubernetesServiceConnection: $(clusterName)
