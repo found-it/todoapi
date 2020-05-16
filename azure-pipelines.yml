@@ -3,7 +3,7 @@
 # Azure Pipeline for Todo API Server
 #
 # Displays usage of the Anchore integration with Azure DevOps
-# 
+#
 ####
 
 trigger:
@@ -50,7 +50,8 @@ stages:
   - job: Staging
     displayName: Staging
     pool:
-      vmImage: $(vmImageName)
+      name: 'Default'
+      # vmImage: $(vmImageName)
     steps:
     - task: Docker@2
       displayName: Build and push an image to container registry
@@ -86,7 +87,8 @@ stages:
   - job: Production
     displayName: Production
     pool:
-      vmImage: $(vmImageName)
+      name: 'Default'
+      # vmImage: $(vmImageName)
     steps:
     - task: Docker@2
       displayName: Build and push an image to container registry
