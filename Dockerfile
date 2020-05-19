@@ -1,20 +1,14 @@
-FROM dotnet/redhat/ubi/ubi8:1.0
+FROM dcar/ubi8:golang
 
-RUN groupadd -r foundit && useradd -r -s /bin/false -g foundit foundit
-
-
-WORKDIR /app
-
-COPY *.csproj ./
-RUN dotnet restore
-
+WORKDIR $GOPATH/src/todoapi
 COPY . ./
-RUN dotnet publish -c Release -o out
+
+RUN go build -o $GOBIN/todoapi
+
+RUN groupadd -r foundit && \
+    useradd -r -s /bin/false -g foundit foundit
 
 EXPOSE 9000
 
-RUN chown -R foundit:foundit /app && \
-    chmod -ts /usr/bin/sudo
-
 USER foundit
-ENTRYPOINT ["dotnet", "out/todo.dll"]
+ENTRYPOINT ["/go/bin/todoapi"]
