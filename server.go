@@ -30,7 +30,7 @@ var tasks = allTasks {
 }
 
 func fillTasks(w http.ResponseWriter) []Task {
-    file, err := os.OpenFile("/mnt/data/tasks.json")
+    file, err := os.OpenFile("/mnt/data/tasks.json", os.O_RDONLY, 0644)
     if err != nil {
         fmt.Fprintf(w, "Error opening the database")
     }
@@ -44,11 +44,12 @@ func fillTasks(w http.ResponseWriter) []Task {
     var tasks []Task
     json.Unmarshal(bv, &tasks)
 
-    fmt.Fprintf(w, tasks)
+    fmt.Fprintf(w, string(bv))
     fmt.Println("Opened file")
     fmt.Println(tasks)
 
     return tasks
+}
 
 
 func createTask(w http.ResponseWriter, r *http.Request) {
