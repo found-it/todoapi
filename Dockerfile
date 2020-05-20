@@ -9,7 +9,8 @@ FROM localhost/redhat/ubi/ubi8:8.2
 
 WORKDIR /go
 
-RUN groupadd -r foundit && \
+RUN yum update && \
+    groupadd -r foundit && \
     useradd -r -s /bin/false -g foundit foundit
 
 EXPOSE 9000
