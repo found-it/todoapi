@@ -17,5 +17,5 @@ EXPOSE 9000
 
 COPY --from=build /go ./
 
-USER foundit
+# USER foundit
 ENTRYPOINT ["/go/bin/todoapi"]
