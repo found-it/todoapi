@@ -6,7 +6,6 @@ import (
     "fmt"
     "log"
     "net/http"
-    // "hash/fnv"
     "io/ioutil"
     "encoding/json"
     "github.com/gorilla/mux"
@@ -29,6 +28,28 @@ var tasks = allTasks {
         Complete: false,
     },
 }
+
+func fillTasks(w http.ResponseWriter) []Task {
+    file, err := os.OpenFile("/mnt/data/tasks.json")
+    if err != nil {
+        fmt.Fprintf(w, "Error opening the database")
+    }
+    defer file.Close()
+
+    bv, err := ioutil.ReadAll(file)
+    if err != nil {
+        fmt.Fprintf(w, "Error reading the database")
+    }
+
+    var tasks []Task
+    json.Unmarshal(bv, &tasks)
+
+    fmt.Fprintf(w, tasks)
+    fmt.Println("Opened file")
+    fmt.Println(tasks)
+
+    return tasks
+
 
 func createTask(w http.ResponseWriter, r *http.Request) {
     var newtask Task
@@ -55,6 +76,7 @@ func getOneTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func getTasks(w http.ResponseWriter, r *http.Request) {
+    fillTasks(w)
     json.NewEncoder(w).Encode(tasks);
 }
 
