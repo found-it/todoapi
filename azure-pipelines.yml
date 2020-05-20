@@ -147,6 +147,7 @@ stages:
               manifests: |
                 $(System.ArtifactsDirectory)/manifests/deploy.yaml
                 $(System.ArtifactsDirectory)/manifests/svc.yaml
+                $(System.ArtifactsDirectory)/manifests/pvc.yaml
               imagePullSecrets: |
                 $(k8sImagePullSecret)
               containers: |
