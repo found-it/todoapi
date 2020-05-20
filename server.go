@@ -30,6 +30,7 @@ var tasks = allTasks {
 }
 
 func fillTasks(w http.ResponseWriter) []Task {
+
     file, err := os.OpenFile("/mnt/data/tasks.json", os.O_RDONLY, 0644)
     if err != nil {
         fmt.Fprintf(w, "Error opening the database")
@@ -145,6 +146,14 @@ func homeLink(w http.ResponseWriter, r *http.Request) {
 
 
 func main() {
+
+    dd := []byte(`[{"id":"1","name":"Water the dogs","Complete":false}]`)
+    err := ioutil.WriteFile("/mnt/data/tasks.json", dd, 0644)
+    if err != nil {
+        fmt.Println(err)
+        log.Fatal("Could not write to file")
+    }
+
     router := mux.NewRouter().StrictSlash(true)
     router.HandleFunc("/", homeLink)
     router.HandleFunc("/api/system",      getSystem).Methods("GET")
