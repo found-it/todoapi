@@ -31,17 +31,17 @@ var globalTasks = allTasks {
 
 const filepath = "/mnt/data/tasks.json"
 
-func fetchDB(w http.ResponseWriter) []Task {
+func fetchDB() []Task {
 
     file, err := os.OpenFile(filepath, os.O_RDONLY, 0644)
     if err != nil {
-        fmt.Fprintf(w, "Error opening the database")
+        fmt.Fprintf(os.Stderr, "Error opening the database")
     }
     defer file.Close()
 
     bv, err := ioutil.ReadAll(file)
     if err != nil {
-        fmt.Fprintf(w, "Error reading the database")
+        fmt.Fprintf(os.Stderr, "Error reading the database")
     }
 
     var tasks []Task
@@ -51,17 +51,45 @@ func fetchDB(w http.ResponseWriter) []Task {
 }
 
 
-func addDB(w http.ResponseWriter, newtask Task) {
-    tasks := fetchDB(w)
+func addDB(newtask Task) {
+    tasks := fetchDB()
     tasks = append(tasks, newtask)
 
     res, err := json.Marshal(tasks)
     if err != nil {
-        fmt.Fprintf(w, "Couldn't marshal json")
+        fmt.Fprintf(os.Stderr, "Couldn't marshal json")
     }
     file, err := os.OpenFile(filepath, os.O_WRONLY, 0644)
     if err != nil {
-        fmt.Fprintf(w, "Error opening the database")
+        fmt.Fprintf(os.Stderr, "Error opening the database")
+    }
+    defer file.Close()
+
+    file.Write(res)
+}
+
+
+func updateDB(id string, updated Task) {
+    tasks := fetchDB()
+    for i, _ := range tasks {
+        if tasks[i].Id == id {
+            tasks[i].Name = updated.Name
+            tasks[i].Complete = updated.Complete
+            // tasks = append(tasks[:i], task)
+            // json.NewEncoder(w).Encode(task)
+        }
+    }
+
+    fmt.Println("Updated: ", tasks)
+
+    res, err := json.Marshal(tasks)
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Couldn't marshal json")
+    }
+    err = os.Truncate(filepath, 0)
+    file, err := os.OpenFile(filepath, os.O_WRONLY, 0644)
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Error opening the database")
     }
     defer file.Close()
 
@@ -81,14 +109,14 @@ func createTask(w http.ResponseWriter, r *http.Request) {
 
     json.Unmarshal(body, &newtask)
 
-    addDB(w, newtask)
+    addDB(newtask)
 
     w.WriteHeader(http.StatusCreated)
     json.NewEncoder(w).Encode(newtask)
 }
 
 func getOneTask(w http.ResponseWriter, r *http.Request) {
-    tasks := fetchDB(w)
+    tasks := fetchDB()
 
     id := mux.Vars(r)["id"]
     for _, task := range tasks {
@@ -99,41 +127,13 @@ func getOneTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func getTasks(w http.ResponseWriter, r *http.Request) {
-    tasks := fetchDB(w)
+    tasks := fetchDB()
 
     err := json.NewEncoder(w).Encode(tasks)
     if err != nil {
         fmt.Println(err)
         fmt.Fprintf(w, "Error encoding json")
     }
-}
-
-
-func updateDB(w http.ResponseWriter, id string, updated Task) {
-    tasks := fetchDB(w)
-    for i, _ := range tasks {
-        if tasks[i].Id == id {
-            tasks[i].Name = updated.Name
-            tasks[i].Complete = updated.Complete
-            // tasks = append(tasks[:i], task)
-            // json.NewEncoder(w).Encode(task)
-        }
-    }
-
-    fmt.Println("Updated: ", tasks)
-
-    res, err := json.Marshal(tasks)
-    if err != nil {
-        fmt.Fprintf(w, "Couldn't marshal json")
-    }
-    err = os.Truncate(filepath, 0)
-    file, err := os.OpenFile(filepath, os.O_WRONLY, 0644)
-    if err != nil {
-        fmt.Fprintf(w, "Error opening the database")
-    }
-    defer file.Close()
-
-    file.Write(res)
 }
 
 
@@ -148,7 +148,7 @@ func updateTask(w http.ResponseWriter, r *http.Request) {
         fmt.Fprintf(w, "Please enter data")
     }
     json.Unmarshal(body, &updated)
-    updateDB(w, id, updated)
+    updateDB(id, updated)
 
 }
 
