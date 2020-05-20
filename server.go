@@ -21,7 +21,7 @@ type Task struct {
 
 type allTasks []Task
 
-var tasks = allTasks {
+var globalTasks = allTasks {
     {
         Id: "1",
         Name: "Feed the dogs",
@@ -29,9 +29,11 @@ var tasks = allTasks {
     },
 }
 
-func fillTasks(w http.ResponseWriter) []Task {
+const filepath = "/mnt/data/tasks.json"
 
-    file, err := os.OpenFile("/mnt/data/tasks.json", os.O_RDONLY, 0644)
+func fetchDB(w http.ResponseWriter) []Task {
+
+    file, err := os.OpenFile(filepath, os.O_RDONLY, 0644)
     if err != nil {
         fmt.Fprintf(w, "Error opening the database")
     }
@@ -45,15 +47,31 @@ func fillTasks(w http.ResponseWriter) []Task {
     var tasks []Task
     json.Unmarshal(bv, &tasks)
 
-    fmt.Fprintf(w, string(bv))
-    fmt.Println("Opened file")
-    fmt.Println(tasks)
-
     return tasks
 }
 
 
+func addDB(w http.ResponseWriter, newtask Task) {
+    tasks := fetchDB(w)
+    tasks = append(tasks, newtask)
+
+    res, err := json.Marshal(tasks)
+    if err != nil {
+        fmt.Fprintf(w, "Couldn't marshal json")
+    }
+    file, err := os.OpenFile(filepath, os.O_WRONLY, 0644)
+    if err != nil {
+        fmt.Fprintf(w, "Error opening the database")
+    }
+    defer file.Close()
+
+    file.Write(res)
+}
+
+
+
 func createTask(w http.ResponseWriter, r *http.Request) {
+
     var newtask Task
     body, err := ioutil.ReadAll(r.Body)
     if err != nil {
@@ -62,13 +80,16 @@ func createTask(w http.ResponseWriter, r *http.Request) {
     fmt.Println("Received:", string(body))
 
     json.Unmarshal(body, &newtask)
-    tasks = append(tasks, newtask)
-    w.WriteHeader(http.StatusCreated)
 
+    addDB(w, newtask)
+
+    w.WriteHeader(http.StatusCreated)
     json.NewEncoder(w).Encode(newtask)
 }
 
 func getOneTask(w http.ResponseWriter, r *http.Request) {
+    tasks := fetchDB(w)
+
     id := mux.Vars(r)["id"]
     for _, task := range tasks {
         if task.Id == id {
@@ -78,13 +99,47 @@ func getOneTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func getTasks(w http.ResponseWriter, r *http.Request) {
-    fillTasks(w)
-    json.NewEncoder(w).Encode(tasks);
+    tasks := fetchDB(w)
+
+    err := json.NewEncoder(w).Encode(tasks)
+    if err != nil {
+        fmt.Println(err)
+        fmt.Fprintf(w, "Error encoding json")
+    }
+}
+
+
+func updateDB(w http.ResponseWriter, id string, updated Task) {
+    tasks := fetchDB(w)
+    for i, _ := range tasks {
+        if tasks[i].Id == id {
+            tasks[i].Name = updated.Name
+            tasks[i].Complete = updated.Complete
+            // tasks = append(tasks[:i], task)
+            // json.NewEncoder(w).Encode(task)
+        }
+    }
+
+    fmt.Println("Updated: ", tasks)
+
+    res, err := json.Marshal(tasks)
+    if err != nil {
+        fmt.Fprintf(w, "Couldn't marshal json")
+    }
+    err = os.Truncate(filepath, 0)
+    file, err := os.OpenFile(filepath, os.O_WRONLY, 0644)
+    if err != nil {
+        fmt.Fprintf(w, "Error opening the database")
+    }
+    defer file.Close()
+
+    file.Write(res)
 }
 
 
 
 func updateTask(w http.ResponseWriter, r *http.Request) {
+
     id := mux.Vars(r)["id"]
     var updated Task
 
@@ -93,24 +148,17 @@ func updateTask(w http.ResponseWriter, r *http.Request) {
         fmt.Fprintf(w, "Please enter data")
     }
     json.Unmarshal(body, &updated)
+    updateDB(w, id, updated)
 
-    for i, task := range tasks {
-        if task.Id == id {
-            task.Name = updated.Name
-            task.Complete = updated.Complete
-            tasks = append(tasks[:i], task)
-            json.NewEncoder(w).Encode(task)
-        }
-    }
 }
 
 
 func deleteTask(w http.ResponseWriter, r *http.Request) {
     id := mux.Vars(r)["id"]
 
-    for i, task := range tasks {
+    for i, task := range globalTasks {
         if task.Id == id {
-            tasks = append(tasks[:i], tasks[i+1:]...)
+            globalTasks = append(globalTasks[:i], globalTasks[i+1:]...)
             fmt.Fprintf(w, "ID(%v) has been deleted", id)
         }
     }
@@ -147,12 +195,12 @@ func homeLink(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
-    dd := []byte(`[{"id":"1","name":"Water the dogs","Complete":false}]`)
-    err := ioutil.WriteFile("/mnt/data/tasks.json", dd, 0644)
-    if err != nil {
-        fmt.Println(err)
-        log.Fatal("Could not write to file")
-    }
+    // dd := []byte(`[{"id":"1","name":"Water the dogs","Complete":false}]`)
+    // err := ioutil.WriteFile("/mnt/data/tasks.json", dd, 0644)
+    // if err != nil {
+    //     fmt.Println(err)
+    //     log.Fatal("Could not write to file")
+    // }
 
     router := mux.NewRouter().StrictSlash(true)
     router.HandleFunc("/", homeLink)
