@@ -31,8 +31,8 @@ var globalTasks = allTasks {
 }
 
 
-const filepath = "/tmp/tasks.json"
-//const filepath = "/mnt/data/tasks.json"
+//const filepath = "/tmp/tasks.json"
+const filepath = "/mnt/data/tasks.json"
 
 var logging = logrus.New()
 var log = logging.WithFields(logrus.Fields{"db": filepath})
