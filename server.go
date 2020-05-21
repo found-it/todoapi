@@ -29,19 +29,20 @@ var globalTasks = allTasks {
     },
 }
 
+
 const filepath = "/mnt/data/tasks.json"
 
 func fetchDB() []Task {
 
     file, err := os.OpenFile(filepath, os.O_RDONLY, 0644)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error opening the database")
+        log.Printf("Error opening the database\n")
     }
     defer file.Close()
 
     bv, err := ioutil.ReadAll(file)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error reading the database")
+        log.Printf("Error reading the database\n")
     }
 
     var tasks []Task
@@ -57,11 +58,11 @@ func addDB(newtask Task) {
 
     res, err := json.Marshal(tasks)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Couldn't marshal json")
+        log.Printf("Couldn't marshal json\n")
     }
     file, err := os.OpenFile(filepath, os.O_WRONLY, 0644)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error opening the database")
+        log.Printf("Error opening the database\n")
     }
     defer file.Close()
 
@@ -73,8 +74,12 @@ func updateDB(id string, updated Task) {
     tasks := fetchDB()
     for i, _ := range tasks {
         if tasks[i].Id == id {
-            tasks[i].Name = updated.Name
-            tasks[i].Complete = updated.Complete
+            if updated.Name != "" {
+                tasks[i].Name = updated.Name
+            }
+            if tasks[i].Complete != updated.Complete {
+                tasks[i].Complete = updated.Complete
+            }
             // tasks = append(tasks[:i], task)
             // json.NewEncoder(w).Encode(task)
         }
@@ -84,12 +89,12 @@ func updateDB(id string, updated Task) {
 
     res, err := json.Marshal(tasks)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Couldn't marshal json")
+        log.Printf("Couldn't marshal json")
     }
     err = os.Truncate(filepath, 0)
     file, err := os.OpenFile(filepath, os.O_WRONLY, 0644)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error opening the database")
+        log.Printf("Error opening the database")
     }
     defer file.Close()
 
@@ -201,6 +206,20 @@ func main() {
     //     fmt.Println(err)
     //     log.Fatal("Could not write to file")
     // }
+
+    if _, err := os.Stat(filepath); err == nil {
+        log.Printf("Found db at %s\n", filepath)
+    } else if os.IsNotExist(err) {
+        f, err := os.Create(filepath)
+        if err != nil {
+            log.Print(err)
+            log.Fatal("Could not create db\n")
+        }
+        f.Close()
+    } else {
+        log.Fatal(err)
+    }
+
 
     router := mux.NewRouter().StrictSlash(true)
     router.HandleFunc("/", homeLink)
