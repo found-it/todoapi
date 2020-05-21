@@ -30,8 +30,8 @@ var globalTasks = allTasks {
 }
 
 
-const filepath = "/tmp/tasks.json"
-// const filepath = "/mnt/data/tasks.json"
+// const filepath = "/tmp/tasks.json"
+const filepath = "/mnt/data/tasks.json"
 
 
 /*
