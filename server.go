@@ -31,8 +31,8 @@ var globalTasks = allTasks {
 }
 
 
-//const filepath = "/tmp/tasks.json"
-const filepath = "/mnt/data/tasks.json"
+const filepath = "/tmp/tasks.json"
+//const filepath = "/mnt/data/tasks.json"
 
 var logging = logrus.New()
 var log = logging.WithFields(logrus.Fields{"db": filepath})
@@ -61,6 +61,28 @@ func fetchDB() []Task {
 }
 
 
+func writeDB(tasks []Task) {
+
+    res, err := json.Marshal(tasks)
+    if err != nil {
+        log.Error("Couldn't marshal json")
+    }
+
+    err = os.Truncate(filepath, 0)
+    if err != nil {
+        log.Error("Could not truncate file")
+    }
+
+    file, err := os.OpenFile(filepath, os.O_WRONLY, 0644)
+    if err != nil {
+        log.Error("Error opening the database")
+    }
+    defer file.Close()
+
+    file.Write(res)
+
+}
+
 /*
  *
  */
@@ -73,17 +95,7 @@ func addDB(newtask Task) {
     tasks := fetchDB()
     tasks = append(tasks, newtask)
 
-    res, err := json.Marshal(tasks)
-    if err != nil {
-        log.Error("Couldn't marshal json")
-    }
-    file, err := os.OpenFile(filepath, os.O_WRONLY, 0644)
-    if err != nil {
-        log.Error("Error opening the database")
-    }
-    defer file.Close()
-
-    file.Write(res)
+    writeDB(tasks)
 }
 
 
@@ -109,18 +121,7 @@ func updateDB(id string, updated Task) {
         "task": updated,
     }).Info("Updating task in database")
 
-    res, err := json.Marshal(tasks)
-    if err != nil {
-        log.Error("Couldn't marshal js")
-    }
-    err = os.Truncate(filepath, 0)
-    file, err := os.OpenFile(filepath, os.O_WRONLY, 0644)
-    if err != nil {
-        log.Error("Error opening the database")
-    }
-    defer file.Close()
-
-    file.Write(res)
+    writeDB(tasks)
 }
 
 
@@ -212,6 +213,7 @@ func updateTask(w http.ResponseWriter, r *http.Request) {
 }
 
 
+
 /*
  *
  */
@@ -221,15 +223,18 @@ func deleteTask(w http.ResponseWriter, r *http.Request) {
 
     id := mux.Vars(r)["id"]
 
-    for i, task := range globalTasks {
+    tasks := fetchDB()
+
+    for i, task := range tasks {
         if task.Id == id {
-            globalTasks = append(globalTasks[:i], globalTasks[i+1:]...)
+            tasks = append(tasks[:i], tasks[i+1:]...)
             fmt.Fprintf(w, "ID(%v) has been deleted", id)
             log.WithFields(logrus.Fields{
                 "id": id,
             }).Info("Task has been deleted")
         }
     }
+    writeDB(tasks)
 }
 
 
