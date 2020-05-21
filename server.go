@@ -4,7 +4,6 @@ package main
 import (
     "os"
     "fmt"
-    // "log"
     "net/http"
     "io/ioutil"
     "encoding/json"
@@ -20,18 +19,8 @@ type Task struct {
     // Tags    []string    `json:"tags"`
 }
 
-type allTasks []Task
 
-var globalTasks = allTasks {
-    {
-        Id: "1",
-        Name: "Feed the dogs",
-        Complete: false,
-    },
-}
-
-
-//const filepath = "/tmp/tasks.json"
+// const filepath = "/tmp/tasks.json"
 const filepath = "/mnt/data/tasks.json"
 
 var logging = logrus.New()
