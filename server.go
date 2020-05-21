@@ -4,11 +4,12 @@ package main
 import (
     "os"
     "fmt"
-    "log"
+    // "log"
     "net/http"
     "io/ioutil"
     "encoding/json"
     "github.com/gorilla/mux"
+    "github.com/sirupsen/logrus"
 )
 
 
@@ -30,8 +31,11 @@ var globalTasks = allTasks {
 }
 
 
-// const filepath = "/tmp/tasks.json"
+//const filepath = "/tmp/tasks.json"
 const filepath = "/mnt/data/tasks.json"
+
+var logging = logrus.New()
+var log = logging.WithFields(logrus.Fields{"db": filepath})
 
 
 /*
@@ -41,13 +45,13 @@ func fetchDB() []Task {
 
     file, err := os.OpenFile(filepath, os.O_RDONLY, 0644)
     if err != nil {
-        log.Printf("Error opening the database\n")
+        log.Error("Error opening the database")
     }
     defer file.Close()
 
     bv, err := ioutil.ReadAll(file)
     if err != nil {
-        log.Printf("Error reading the database\n")
+        log.Error("Error reading the database")
     }
 
     var tasks []Task
@@ -61,16 +65,21 @@ func fetchDB() []Task {
  *
  */
 func addDB(newtask Task) {
+
+    log.WithFields(logrus.Fields{
+        "task": newtask,
+    }).Info("Adding task to database")
+
     tasks := fetchDB()
     tasks = append(tasks, newtask)
 
     res, err := json.Marshal(tasks)
     if err != nil {
-        log.Printf("Couldn't marshal json\n")
+        log.Error("Couldn't marshal json")
     }
     file, err := os.OpenFile(filepath, os.O_WRONLY, 0644)
     if err != nil {
-        log.Printf("Error opening the database\n")
+        log.Error("Error opening the database")
     }
     defer file.Close()
 
@@ -96,16 +105,18 @@ func updateDB(id string, updated Task) {
         }
     }
 
-    fmt.Println("Updated: ", tasks)
+    log.WithFields(logrus.Fields{
+        "task": updated,
+    }).Info("Updating task in database")
 
     res, err := json.Marshal(tasks)
     if err != nil {
-        log.Printf("Couldn't marshal json")
+        log.Error("Couldn't marshal js")
     }
     err = os.Truncate(filepath, 0)
     file, err := os.OpenFile(filepath, os.O_WRONLY, 0644)
     if err != nil {
-        log.Printf("Error opening the database")
+        log.Error("Error opening the database")
     }
     defer file.Close()
 
@@ -119,12 +130,17 @@ func updateDB(id string, updated Task) {
  */
 func createTask(w http.ResponseWriter, r *http.Request) {
 
+    log.Info("Creating task")
+
     var newtask Task
     body, err := ioutil.ReadAll(r.Body)
     if err != nil {
         fmt.Fprintf(w, "Incorrect request")
     }
-    fmt.Println("Received:", string(body))
+
+    log.WithFields(logrus.Fields{
+        "task": string(body),
+    }).Info("Received task input")
 
     json.Unmarshal(body, &newtask)
 
@@ -139,6 +155,9 @@ func createTask(w http.ResponseWriter, r *http.Request) {
  *
  */
 func getOneTask(w http.ResponseWriter, r *http.Request) {
+
+    log.Info("Retrieving task")
+
     tasks := fetchDB()
 
     id := mux.Vars(r)["id"]
@@ -154,11 +173,16 @@ func getOneTask(w http.ResponseWriter, r *http.Request) {
  *
  */
 func getTasks(w http.ResponseWriter, r *http.Request) {
+
+    log.Info("Retrieving tasks")
+
     tasks := fetchDB()
 
     err := json.NewEncoder(w).Encode(tasks)
     if err != nil {
-        fmt.Println(err)
+        log.WithFields(logrus.Fields{
+            "error": err,
+        }).Error("Could not get tasks")
         fmt.Fprintf(w, "Error encoding json")
     }
 }
@@ -170,12 +194,17 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
  */
 func updateTask(w http.ResponseWriter, r *http.Request) {
 
+    log.Info("Updating task")
+
     id := mux.Vars(r)["id"]
     var updated Task
 
     body, err := ioutil.ReadAll(r.Body)
     if err != nil {
         fmt.Fprintf(w, "Please enter data")
+        log.WithFields(logrus.Fields{
+            "body": string(body),
+        }).Error("Did not receive data")
     }
     json.Unmarshal(body, &updated)
     updateDB(id, updated)
@@ -187,12 +216,18 @@ func updateTask(w http.ResponseWriter, r *http.Request) {
  *
  */
 func deleteTask(w http.ResponseWriter, r *http.Request) {
+
+    log.Info("Deleting task")
+
     id := mux.Vars(r)["id"]
 
     for i, task := range globalTasks {
         if task.Id == id {
             globalTasks = append(globalTasks[:i], globalTasks[i+1:]...)
             fmt.Fprintf(w, "ID(%v) has been deleted", id)
+            log.WithFields(logrus.Fields{
+                "id": id,
+            }).Info("Task has been deleted")
         }
     }
 }
@@ -206,7 +241,8 @@ func getSystem(w http.ResponseWriter, r *http.Request) {
 
     name, err := os.Hostname()
     if err != nil {
-        fmt.Fprintf(w, "Could not get hostname")
+        // fmt.Fprintf(w, "Could not get hostname")
+        log.Error("Could not get hostname")
         // Set status
 
     } else {
@@ -229,30 +265,38 @@ func getSystem(w http.ResponseWriter, r *http.Request) {
  *
  */
 func homeLink(w http.ResponseWriter, r *http.Request) {
-    log.Print("hit home")
+    log.Info("hit home")
     fmt.Fprintf(w, "Welcome home!")
 }
 
+
+func init() {
+
+    if _, err := os.Stat(filepath); err == nil {
+        log.Info("Found db")
+    } else if os.IsNotExist(err) {
+        f, err := os.Create(filepath)
+        if err != nil {
+            log.WithFields(logrus.Fields{
+                "error": err,
+            }).Fatal("Could not create db")
+        }
+        f.Close()
+    } else {
+        log.WithFields(logrus.Fields{
+            "error": err,
+        }).Fatal("Finding db failed")
+    }
+
+    // log.SetReportCaller(true)
+
+}
 
 
 /*
  *
  */
 func main() {
-
-    if _, err := os.Stat(filepath); err == nil {
-        log.Printf("Found db at %s\n", filepath)
-    } else if os.IsNotExist(err) {
-        f, err := os.Create(filepath)
-        if err != nil {
-            log.Print(err)
-            log.Fatal("Could not create db\n")
-        }
-        f.Close()
-    } else {
-        log.Fatal(err)
-    }
-
 
     router := mux.NewRouter().StrictSlash(true)
     router.HandleFunc("/", homeLink)
