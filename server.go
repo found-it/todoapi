@@ -30,8 +30,13 @@ var globalTasks = allTasks {
 }
 
 
-const filepath = "/mnt/data/tasks.json"
+const filepath = "/tmp/tasks.json"
+// const filepath = "/mnt/data/tasks.json"
 
+
+/*
+ *
+ */
 func fetchDB() []Task {
 
     file, err := os.OpenFile(filepath, os.O_RDONLY, 0644)
@@ -52,6 +57,9 @@ func fetchDB() []Task {
 }
 
 
+/*
+ *
+ */
 func addDB(newtask Task) {
     tasks := fetchDB()
     tasks = append(tasks, newtask)
@@ -70,6 +78,9 @@ func addDB(newtask Task) {
 }
 
 
+/*
+ *
+ */
 func updateDB(id string, updated Task) {
     tasks := fetchDB()
     for i, _ := range tasks {
@@ -103,6 +114,9 @@ func updateDB(id string, updated Task) {
 
 
 
+/*
+ *
+ */
 func createTask(w http.ResponseWriter, r *http.Request) {
 
     var newtask Task
@@ -120,6 +134,10 @@ func createTask(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(newtask)
 }
 
+
+/*
+ *
+ */
 func getOneTask(w http.ResponseWriter, r *http.Request) {
     tasks := fetchDB()
 
@@ -131,6 +149,10 @@ func getOneTask(w http.ResponseWriter, r *http.Request) {
     }
 }
 
+
+/*
+ *
+ */
 func getTasks(w http.ResponseWriter, r *http.Request) {
     tasks := fetchDB()
 
@@ -143,6 +165,9 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 
 
 
+/*
+ *
+ */
 func updateTask(w http.ResponseWriter, r *http.Request) {
 
     id := mux.Vars(r)["id"]
@@ -158,6 +183,9 @@ func updateTask(w http.ResponseWriter, r *http.Request) {
 }
 
 
+/*
+ *
+ */
 func deleteTask(w http.ResponseWriter, r *http.Request) {
     id := mux.Vars(r)["id"]
 
@@ -171,41 +199,46 @@ func deleteTask(w http.ResponseWriter, r *http.Request) {
 
 
 
+/*
+ *
+ */
 func getSystem(w http.ResponseWriter, r *http.Request) {
 
     name, err := os.Hostname()
     if err != nil {
         fmt.Fprintf(w, "Could not get hostname")
-    }
+        // Set status
 
-    type SystemInfo struct {
-        Hostname    string  `json:"hostname"`
-    }
-    si := SystemInfo {
-        Hostname: name,
-    }
+    } else {
 
-    json.NewEncoder(w).Encode(si)
+        type SystemInfo struct {
+            Hostname    string  `json:"hostname"`
+        }
+        si := SystemInfo {
+            Hostname: name,
+        }
+
+        json.NewEncoder(w).Encode(si)
+    }
 }
 
 
 
 
+/*
+ *
+ */
 func homeLink(w http.ResponseWriter, r *http.Request) {
-    fmt.Println("(hit)")
+    log.Print("hit home")
     fmt.Fprintf(w, "Welcome home!")
 }
 
 
 
+/*
+ *
+ */
 func main() {
-
-    // dd := []byte(`[{"id":"1","name":"Water the dogs","Complete":false}]`)
-    // err := ioutil.WriteFile("/mnt/data/tasks.json", dd, 0644)
-    // if err != nil {
-    //     fmt.Println(err)
-    //     log.Fatal("Could not write to file")
-    // }
 
     if _, err := os.Stat(filepath); err == nil {
         log.Printf("Found db at %s\n", filepath)

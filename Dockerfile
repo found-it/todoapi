@@ -11,8 +11,8 @@ WORKDIR /go
 
 RUN mkdir -p /mnt/data && \
     yum update && \
-    groupadd -r foundit && \
-    useradd -r -s /bin/false -g foundit foundit && \
+    groupadd --system --gid 2323 foundit && \
+    useradd --system --shell /bin/false --gid foundit foundit && \
     chown -R foundit:foundit /mnt/data
 
 EXPOSE 9000

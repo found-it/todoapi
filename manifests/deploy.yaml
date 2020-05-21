@@ -20,6 +20,8 @@ spec:
         volumeMounts:
         - mountPath: "/mnt/data"
           name: volume
+      securityContext:
+        fsGroup: 2323
       volumes:
       - name: volume
         persistentVolumeClaim:
