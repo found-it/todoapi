@@ -50,6 +50,9 @@ func fetchDB() []Task {
 }
 
 
+/*
+ *
+ */
 func writeDB(tasks []Task) {
 
     res, err := json.Marshal(tasks)
