@@ -64,7 +64,7 @@ stages:
       # vmImage: $(vmImageName)
     steps:
     - script: |
-        cp /home/agent/golang/go1.14.3.linux-amd64.tar.gz $(Build.SourceDirectory)
+        cp /home/agent/golang/go1.14.3.linux-amd64.tar.gz $(Build.SourcesDirectory)
       displayName: Copy golang tarball
     - task: Docker@2
       displayName: Build and push an image to container registry
