@@ -73,7 +73,7 @@ stages:
       displayName: Login to the \"DCAR\"
       inputs:
         command: login
-        containerRegistry: acrDcarServiceConnection
+        containerRegistry: $(acrDcarServiceConnection)
     - task: Docker@2
       displayName: Build and push an image to container registry
       inputs:
