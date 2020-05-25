@@ -1,14 +1,26 @@
-FROM dcar/ubi8:golang as build
+FROM demodcar.azurecr.io/redhat/ubi/ubi8:8.2
 
+# Install golang
+WORKDIR /tmp
+
+COPY ./go1.14.3.linux-amd64.tar.gz ./
+
+RUN tar -C /usr/local -xzf go1.14.3.linux-amd64.tar.gz && \
+    rm /tmp/go1.14.3.linux-amd64.tar.gz
+
+ENV GOROOT=/usr/local/go
+ENV GOPATH=/go
+ENV GOBIN=$GOPATH/bin
+ENV PATH=$PATH:$GOBIN
+ENV PATH=$PATH:$GOROOT/bin
+
+# Install the application
 WORKDIR $GOPATH/src/todoapi
 COPY . ./
 
 RUN go build -o $GOBIN/todoapi
 
-FROM localhost/redhat/ubi/ubi8:8.2
-
-WORKDIR /go
-
+# Set up a non-root user
 RUN mkdir -p /mnt/data && \
     yum update && \
     groupadd --system --gid 2323 foundit && \
@@ -16,8 +28,6 @@ RUN mkdir -p /mnt/data && \
     chown -R foundit:foundit /mnt/data
 
 EXPOSE 9000
-
-COPY --from=build /go ./
 
 USER foundit
 ENTRYPOINT ["/go/bin/todoapi"]
