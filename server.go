@@ -20,8 +20,7 @@ type Task struct {
 }
 
 
-const filepath = "/tmp/tasks.json"
-// const filepath = "/mnt/data/tasks.json"
+const filepath = "/mnt/data/tasks.json"
 
 var logging = logrus.New()
 var log = logging.WithFields(logrus.Fields{"db": filepath})
@@ -189,20 +188,20 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
  */
 func updateTask(w http.ResponseWriter, r *http.Request) {
 
-    log.info("updating task")
+    log.Info("updating task")
 
-    id := mux.vars(r)["id"]
-    var updated task
+    id := mux.Vars(r)["id"]
+    var updated Task
 
-    body, err := ioutil.readall(r.body)
+    body, err := ioutil.ReadAll(r.Body)
     if err != nil {
-        fmt.fprintf(w, "please enter data")
-        log.withfields(logrus.fields{
+        fmt.Fprintf(w, "Please enter data")
+        log.WithFields(logrus.Fields{
             "body": string(body),
-        }).error("did not receive data")
+        }).Error("did not receive data")
     }
-    json.unmarshal(body, &updated)
-    updatedb(id, updated)
+    json.Unmarshal(body, &updated)
+    updateDB(id, updated)
 }
 
 
