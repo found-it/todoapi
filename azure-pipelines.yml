@@ -8,12 +8,16 @@
 
 trigger:
 - master
+- dev
 
 resources:
 - repo: self
 
 variables:
   # Container registry service connection established during pipeline creation
+  - name: acrDcarServiceConnection
+    value: dcar
+
   - name: acrProdServiceConnection
     value: demoProduction
   - name: prodRegistry
@@ -62,6 +66,16 @@ stages:
       name: 'Default'
       # vmImage: $(vmImageName)
     steps:
+    - script: |
+        cp /home/agent/golang/go1.14.3.linux-amd64.tar.gz $(Build.SourcesDirectory)
+      displayName: Copy golang tarball
+
+    - task: Docker@2
+      displayName: Login to the \"DCAR\"
+      inputs:
+        command: login
+        containerRegistry: $(acrDcarServiceConnection)
+
     - task: Docker@2
       displayName: Build and push an image to container registry
       inputs:
@@ -99,6 +113,16 @@ stages:
       name: 'Default'
       # vmImage: $(vmImageName)
     steps:
+    - script: |
+        cp /home/agent/golang/go1.14.3.linux-amd64.tar.gz $(Build.SourcesDirectory)
+      displayName: Copy golang tarball
+
+    - task: Docker@2
+      displayName: Login to the \"DCAR\"
+      inputs:
+        command: login
+        containerRegistry: $(acrDcarServiceConnection)
+
     - task: Docker@2
       displayName: Build and push an image to container registry
       inputs:
@@ -146,6 +170,7 @@ stages:
               manifests: |
                 $(System.ArtifactsDirectory)/manifests/deploy.yaml
                 $(System.ArtifactsDirectory)/manifests/svc.yaml
+                $(System.ArtifactsDirectory)/manifests/pvc.yaml
               imagePullSecrets: |
                 $(k8sImagePullSecret)
               containers: |

@@ -17,3 +17,12 @@ spec:
         image: anchoredemo.azurecr.io/todoapi
         ports:
         - containerPort: 9000
+        volumeMounts:
+        - mountPath: "/mnt/data"
+          name: volume
+      securityContext:
+        fsGroup: 2323
+      volumes:
+      - name: volume
+        persistentVolumeClaim:
+          claimName: todoapi-disk
