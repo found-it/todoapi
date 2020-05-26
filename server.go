@@ -20,15 +20,15 @@ type Task struct {
 }
 
 
-// const filepath = "/tmp/tasks.json"
-const filepath = "/mnt/data/tasks.json"
+const filepath = "/tmp/tasks.json"
+// const filepath = "/mnt/data/tasks.json"
 
 var logging = logrus.New()
 var log = logging.WithFields(logrus.Fields{"db": filepath})
 
 
 /*
- *
+ *  Fetch the database into an array of tasks
  */
 func fetchDB() []Task {
 
@@ -51,7 +51,7 @@ func fetchDB() []Task {
 
 
 /*
- *
+ *  Write the tasks to the database
  */
 func writeDB(tasks []Task) {
 
@@ -76,7 +76,7 @@ func writeDB(tasks []Task) {
 }
 
 /*
- *
+ *  Add a task to the database
  */
 func addDB(newtask Task) {
 
@@ -92,34 +92,35 @@ func addDB(newtask Task) {
 
 
 /*
- *
+ * Update an entry in the database
+ * CHANGEME
  */
-func updateDB(id string, updated Task) {
-    tasks := fetchDB()
-    for i, _ := range tasks {
-        if tasks[i].Id == id {
-            if updated.Name != "" {
-                tasks[i].Name = updated.Name
-            }
-            if tasks[i].Complete != updated.Complete {
-                tasks[i].Complete = updated.Complete
-            }
-            // tasks = append(tasks[:i], task)
-            // json.NewEncoder(w).Encode(task)
-        }
-    }
-
-    log.WithFields(logrus.Fields{
-        "task": updated,
-    }).Info("Updating task in database")
-
-    writeDB(tasks)
-}
+// func updateDB(id string, updated Task) {
+//     tasks := fetchDB()
+//     for i, _ := range tasks {
+//         if tasks[i].Id == id {
+//             if updated.Name != "" {
+//                 tasks[i].Name = updated.Name
+//             }
+//             if tasks[i].Complete != updated.Complete {
+//                 tasks[i].Complete = updated.Complete
+//             }
+//             // tasks = append(tasks[:i], task)
+//             // json.NewEncoder(w).Encode(task)
+//         }
+//     }
+//
+//     log.WithFields(logrus.Fields{
+//         "task": updated,
+//     }).Info("Updating task in database")
+//
+//     writeDB(tasks)
+// }
 
 
 
 /*
- *
+ * [ Handler ] Create a task
  */
 func createTask(w http.ResponseWriter, r *http.Request) {
 
@@ -145,7 +146,7 @@ func createTask(w http.ResponseWriter, r *http.Request) {
 
 
 /*
- *
+ * [ Handler ] Retreive a single task
  */
 func getOneTask(w http.ResponseWriter, r *http.Request) {
 
@@ -163,7 +164,7 @@ func getOneTask(w http.ResponseWriter, r *http.Request) {
 
 
 /*
- *
+ * [ Handler ] Retreive all tasks
  */
 func getTasks(w http.ResponseWriter, r *http.Request) {
 
@@ -183,31 +184,33 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 
 
 /*
- *
+ * [ Handler ] Update a task
+ * CHANGEME
  */
 func updateTask(w http.ResponseWriter, r *http.Request) {
 
-    log.Info("Updating task")
-
-    id := mux.Vars(r)["id"]
-    var updated Task
-
-    body, err := ioutil.ReadAll(r.Body)
-    if err != nil {
-        fmt.Fprintf(w, "Please enter data")
-        log.WithFields(logrus.Fields{
-            "body": string(body),
-        }).Error("Did not receive data")
-    }
-    json.Unmarshal(body, &updated)
-    updateDB(id, updated)
-
+    fmt.Fprintf(w, "\nThis function has not been implemented yet\n")
+//
+//     log.info("updating task")
+//
+//     id := mux.vars(r)["id"]
+//     var updated task
+//
+//     body, err := ioutil.readall(r.body)
+//     if err != nil {
+//         fmt.fprintf(w, "please enter data")
+//         log.withfields(logrus.fields{
+//             "body": string(body),
+//         }).error("did not receive data")
+//     }
+//     json.unmarshal(body, &updated)
+//     updatedb(id, updated)
 }
 
 
 
 /*
- *
+ * [ Handler ] Delete a task using id
  */
 func deleteTask(w http.ResponseWriter, r *http.Request) {
 
@@ -233,6 +236,7 @@ func deleteTask(w http.ResponseWriter, r *http.Request) {
 
 /*
  *
+ * [ Handler ] Get the system info
  */
 func getSystem(w http.ResponseWriter, r *http.Request) {
 
@@ -259,14 +263,18 @@ func getSystem(w http.ResponseWriter, r *http.Request) {
 
 
 /*
- *
+ *  [ Handler ] Home landing page
  */
 func homeLink(w http.ResponseWriter, r *http.Request) {
-    log.Info("hit home")
-    fmt.Fprintf(w, "Welcome home!")
+    log.Info("Hit home!")
+    fmt.Fprintf(w, "Welcome to TODO note server!")
 }
 
 
+
+/*
+ *  Initialize the database
+ */
 func init() {
 
     if _, err := os.Stat(filepath); err == nil {
@@ -285,20 +293,18 @@ func init() {
         }).Fatal("Finding db failed")
     }
 
-    // log.SetReportCaller(true)
-
 }
 
 
 /*
- *
+ *  Use Gorilla Mux to handle
  */
 func main() {
 
     router := mux.NewRouter().StrictSlash(true)
     router.HandleFunc("/", homeLink)
     router.HandleFunc("/api/system",      getSystem).Methods("GET")
-    router.HandleFunc("/api/create",      createTask)//.Methods("POST")
+    router.HandleFunc("/api/create",      createTask).Methods("POST")
     router.HandleFunc("/api/tasks/{id}",  getOneTask).Methods("GET")
     router.HandleFunc("/api/tasks",       getTasks).Methods("GET")
     router.HandleFunc("/api/update/{id}", updateTask).Methods("PATCH")
