@@ -4,6 +4,7 @@ FROM registry.access.redhat.com/ubi8
 WORKDIR /tmp
 
 ADD https://dl.google.com/go/go1.13.11.linux-amd64.tar.gz ./
+
 RUN tar -C /usr/local -xzf go1.13.11.linux-amd64.tar.gz && \
     rm /tmp/go1.13.11.linux-amd64.tar.gz
 
