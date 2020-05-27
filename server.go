@@ -94,27 +94,25 @@ func addDB(newtask Task) {
  * Update an entry in the database
  * CHANGEME
  */
-func updateDB(id string, updated Task) {
-    tasks := fetchDB()
-    for i, _ := range tasks {
-        if tasks[i].Id == id {
-            if updated.Name != "" {
-                tasks[i].Name = updated.Name
-            }
-            if tasks[i].Complete != updated.Complete {
-                tasks[i].Complete = updated.Complete
-            }
-            // tasks = append(tasks[:i], task)
-            // json.NewEncoder(w).Encode(task)
-        }
-    }
-
-    log.WithFields(logrus.Fields{
-        "task": updated,
-    }).Info("Updating task in database")
-
-    writeDB(tasks)
-}
+// func updateDB(id string, updated Task) {
+//     tasks := fetchDB()
+//     for i, _ := range tasks {
+//         if tasks[i].Id == id {
+//             if updated.Name != "" {
+//                 tasks[i].Name = updated.Name
+//             }
+//             if tasks[i].Complete != updated.Complete {
+//                 tasks[i].Complete = updated.Complete
+//             }
+//         }
+//     }
+//
+//     log.WithFields(logrus.Fields{
+//         "task": updated,
+//     }).Info("Updating task in database")
+//
+//     writeDB(tasks)
+// }
 
 
 
@@ -188,20 +186,22 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
  */
 func updateTask(w http.ResponseWriter, r *http.Request) {
 
-    log.Info("updating task")
+    fmt.Fprintf(w, "\nThat action has not been implemented yet\n")
 
-    id := mux.Vars(r)["id"]
-    var updated Task
-
-    body, err := ioutil.ReadAll(r.Body)
-    if err != nil {
-        fmt.Fprintf(w, "Please enter data")
-        log.WithFields(logrus.Fields{
-            "body": string(body),
-        }).Error("did not receive data")
-    }
-    json.Unmarshal(body, &updated)
-    updateDB(id, updated)
+    // log.Info("updating task")
+    //
+    // id := mux.Vars(r)["id"]
+    // var updated Task
+    //
+    // body, err := ioutil.ReadAll(r.Body)
+    // if err != nil {
+    //     fmt.Fprintf(w, "Please enter data")
+    //     log.WithFields(logrus.Fields{
+    //         "body": string(body),
+    //     }).Error("did not receive data")
+    // }
+    // json.Unmarshal(body, &updated)
+    // updateDB(id, updated)
 }
 
 
