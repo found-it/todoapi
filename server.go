@@ -94,7 +94,7 @@ func addDB(newtask Task) {
  * Update an entry in the database
  * CHANGEME
  */
-func updateDB(id string, updated Task) {
+func updateDB(w http.ResponseWriter, id string, updated Task) {
     tasks := fetchDB()
     for i, _ := range tasks {
         if tasks[i].Id == id {
@@ -203,7 +203,7 @@ func updateTask(w http.ResponseWriter, r *http.Request) {
     }
 
     json.Unmarshal(body, &updated)
-    updateDB(id, updated)
+    updateDB(w, id, updated)
 }
 
 
