@@ -67,12 +67,17 @@ stages:
     - task: Docker@2
       displayName: Build and push an image to container registry
       inputs:
-        command: buildAndPush
-        repository: $(imageRepository)
-        dockerfile: $(dockerfilePath)
+        command: login
         containerRegistry: $(acrStagingServiceConnection)
-        tags: |
-          $(tag)
+        addPipelineData: false
+
+    - script: |
+        DOCKER_BUILDKIT=1 docker build -t $(stagedImage):$(tag) .
+        docker tag $(stagedImage):$(tag) $(stagedImage)-task:$(tag)
+        docker tag $(stagedImage):$(tag) $(stagedImage)-anchorecli:$(tag)
+        docker push $(stagedImage):$(tag)
+        docker push $(stagedImage)-task:$(tag)
+        docker push $(stagedImage)-anchorecli:$(tag)
 
 #
 # Stage 2 - Scanning
@@ -94,7 +99,7 @@ stages:
 
     - task: AnchoreEnterprise@0
       inputs:
-        image: '$(stagedImage):task'
+        image: '$(stagedImage)-task:$(tag)'
         url: $(anchoreUrl)
         username: $(anchoreUser)
         password: $(anchorepass)
@@ -119,9 +124,9 @@ stages:
       displayName: Install tools for Anchore CLI
 
     - script: |
-        anchore-cli image add '$(stagedImage):anchorecli' --dockerfile=Dockerfile
-        anchore-cli image wait '$(stagedImage):anchorecli'
-        anchore-cli evaluate check '(stagedImage):anchorecli'
+        anchore-cli image add '$(stagedImage)-anchorecli:$(tag)' --dockerfile=Dockerfile
+        anchore-cli image wait '$(stagedImage)-anchorecli:$(tag)'
+        anchore-cli evaluate check '(stagedImage)-anchorecli:$(tag)'
       displayName: Scan using anchore-cli
 
 #
