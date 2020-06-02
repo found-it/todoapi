@@ -136,7 +136,7 @@ stages:
 
     - script: |
         echo "Scanning " $(stageCli)
-        anchore-cli image add $(stageCli) --dockerfile=Dockerfile
+        anchore-cli image add $(stageCli) --dockerfile=Dockerfile --force
         anchore-cli image wait $(stageCli)
         anchore-cli evaluate check $(stageCli)
       displayName: Scan using anchore-cli
