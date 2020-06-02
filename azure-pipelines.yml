@@ -118,7 +118,7 @@ stages:
 #
 - stage: AnchoreCLI
   displayName: Anchore CLI Scan
-  dependsOn: Staging
+  dependsOn: TaskScan
   jobs:
   - job: Scan
     displayName: Anchore CLI Scan
@@ -146,6 +146,7 @@ stages:
 #
 - stage: InlineScan
   displayName: Inline Scan
+  dependsOn: AnchoreCLI
   jobs:
   - job: Scan
     displayName: Inline Scan
