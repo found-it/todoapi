@@ -154,7 +154,7 @@ stages:
       vmImage: $(vmImageName)
     steps:
     - script: |
-      DOCKER_BUILDKIT=1 docker build -t $(imageRepository)/inlinescan:$(tag) .
+        DOCKER_BUILDKIT=1 docker build -t $(imageRepository)/inlinescan:$(tag) .
       displayName: Build the local image
 
     - script: |
