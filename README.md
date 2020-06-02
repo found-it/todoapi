@@ -7,6 +7,11 @@ Convenient and secure note server. Allows users to easily store todo tasks that 
 This server is designed to run in a cloud environment for easy access from any command line. It can also be run
 as a docker container using the Dockerfile, just make sure you forward port 9000.
 
+To run the docker container on your local machine, use the following command
+```
+docker run -d --name todoapi --mount source=tododb,target=/mnt/data/ -p 9000:9000 jpetersenames/todoapi:latest
+```
+
 ## Usage
 
 There are a few routes available through the API

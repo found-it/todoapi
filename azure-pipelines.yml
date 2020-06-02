@@ -15,9 +15,6 @@ resources:
 
 variables:
   # Container registry service connection established during pipeline creation
-  - name: acrDcarServiceConnection
-    value: dcar
-
   - name: acrProdServiceConnection
     value: demoProduction
   - name: prodRegistry
@@ -46,36 +43,24 @@ variables:
     value: 'admin'
   - name: anchoreUrl
     value: 'http://23.100.36.77/v1/'
-  - group: AnchoreCreds
+  - group: AnchoreCredentials
     # anchorepass ^
 
-  - name: k8sImagePullSecret
-    value: 'demo-pull-secret'
-  - name: clusterName
-    value: 'demo'
-  - name: namespace
-    value: 'todoapi'
+###########################################################
 
 stages:
+
+#
+# Stage 1 - Staging
+#
 - stage: Staging
   displayName: Build and push to staging registry
   jobs:
   - job: Staging
     displayName: Staging
     pool:
-      name: 'Default'
-      # vmImage: $(vmImageName)
+      vmImage: $(vmImageName)
     steps:
-    - script: |
-        cp /home/agent/golang/go1.14.3.linux-amd64.tar.gz $(Build.SourcesDirectory)
-      displayName: Copy golang tarball
-
-    - task: Docker@2
-      displayName: Login to the \"DCAR\"
-      inputs:
-        command: login
-        containerRegistry: $(acrDcarServiceConnection)
-
     - task: Docker@2
       displayName: Build and push an image to container registry
       inputs:
@@ -86,6 +71,9 @@ stages:
         tags: |
           $(tag)
 
+#
+# Stage 2 - Scanning
+#
 - stage: Scan
   displayName: Scan the staged image
   dependsOn: Staging
@@ -93,7 +81,7 @@ stages:
   - job: Scan
     displayName: Scan
     pool:
-      name: 'Default'
+      vmImage: $(vmImageName)
     steps:
     - task: AnchoreEnterprise@0
       inputs:
@@ -103,6 +91,9 @@ stages:
         password: $(anchorepass)
         dockerfile: Dockerfile
 
+#
+# Stage 3 - Production
+#
 - stage: Production
   displayName: Push to production registry
   dependsOn: Scan
@@ -110,19 +101,8 @@ stages:
   - job: Production
     displayName: Production
     pool:
-      name: 'Default'
-      # vmImage: $(vmImageName)
+      vmImage: $(vmImageName)
     steps:
-    - script: |
-        cp /home/agent/golang/go1.14.3.linux-amd64.tar.gz $(Build.SourcesDirectory)
-      displayName: Copy golang tarball
-
-    - task: Docker@2
-      displayName: Login to the \"DCAR\"
-      inputs:
-        command: login
-        containerRegistry: $(acrDcarServiceConnection)
-
     - task: Docker@2
       displayName: Build and push an image to container registry
       inputs:
@@ -132,47 +112,3 @@ stages:
         containerRegistry: $(acrProdServiceConnection)
         tags: |
           $(tag)
-
-    - task: PublishPipelineArtifact@1
-      inputs:
-        artifactName: 'manifests'
-        path: 'manifests'
-
-- stage: Deploy
-  displayName: Deploy to AKS
-  dependsOn: Production
-  jobs:
-  - deployment: Deploy
-    displayName: Deploy to AKS
-    environment: $(clusterName).todoapi
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - task: DownloadPipelineArtifact@2
-            inputs:
-              artifactName: 'manifests'
-              downloadPath: '$(System.ArtifactsDirectory)/manifests'
-
-          - task: KubernetesManifest@0
-            displayName: Create secret to pull image
-            inputs:
-              action: createSecret
-              secretName: $(k8sImagePullSecret)
-              dockerRegistryEndpoint: $(acrProdServiceConnection)
-              kubernetesServiceConnection: $(clusterName)
-
-          - task: KubernetesManifest@0
-            displayName: Deploy to AKS
-            inputs:
-              action: deploy
-              namespace: $(namespace)
-              manifests: |
-                $(System.ArtifactsDirectory)/manifests/deploy.yaml
-                $(System.ArtifactsDirectory)/manifests/svc.yaml
-                $(System.ArtifactsDirectory)/manifests/pvc.yaml
-              imagePullSecrets: |
-                $(k8sImagePullSecret)
-              containers: |
-                $(prodImage):$(tag)
-              kubernetesServiceConnection: $(clusterName)
