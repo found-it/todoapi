@@ -83,6 +83,12 @@ stages:
     pool:
       vmImage: $(vmImageName)
     steps:
+    - script: |
+        python3 -m pip install --upgrade pip setuptools wheel
+        pip3 install --upgrade anchorecli
+        echo "##vso[task.prependpath]${PATH}:/home/vsts/.local/bin"
+      displayName: Install tools for Anchore CLI
+
     - task: AnchoreEnterprise@0
       inputs:
         image: '$(stagingRegistry)/$(imageRepository):$(tag)'
