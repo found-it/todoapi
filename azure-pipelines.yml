@@ -82,7 +82,7 @@ stages:
     - script: |
         DOCKER_BUILDKIT=1 docker build -t $(stageBase) .
         docker tag $(stageBase) $(stageTask)
-        docker tag $(stagedase) $(stageCli)
+        docker tag $(stageBase) $(stageCli)
         docker push $(stageBase)
         docker push $(stageTask)
         docker push $(stageCli)
