@@ -129,7 +129,6 @@ stages:
 #
 - stage: Scan3
   displayName: Scan the staged image
-  dependsOn: Staging
   jobs:
   - job: Scan
     displayName: Scan
@@ -164,25 +163,3 @@ stages:
           --url $(anchore_url) \
           evaluate check localbuild/$(imageRepository):inlinescan
       displayName: Evaluate the image
-
-#
-# Stage 3 - Production
-#
-- stage: Production
-  displayName: Push to production registry
-  dependsOn: Scan
-  jobs:
-  - job: Production
-    displayName: Production
-    pool:
-      vmImage: $(vmImageName)
-    steps:
-    - task: Docker@2
-      displayName: Build and push an image to container registry
-      inputs:
-        command: buildAndPush
-        repository: $(imageRepository)
-        dockerfile: $(dockerfilePath)
-        containerRegistry: $(acrProdServiceConnection)
-        tags: |
-          $(tag)
