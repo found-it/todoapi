@@ -30,7 +30,8 @@ variables:
   - name: dockerfilePath
     value: 'Dockerfile'
   - name: tag
-    value: '$(Build.BuildId)'
+    value: '$(Build.SourceVersion)'
+    # value: '$(Build.BuildId)'
   - name: prodImage
     value: '$(prodRegistry)/$(imageRepository)'
 
@@ -48,6 +49,13 @@ variables:
     value: 'http://23.100.36.77/v1/'
   - group: AnchoreCredentials
     # anchorepass ^
+
+  - name: stageBase
+    value: $(stagedImage):$(tag)
+  - name: stageTask
+    value: $(stagedImage)/task:$(tag)
+  - name: stageCli
+    value: $(stagedImage)/cli:$(tag)
 
 ###########################################################
 
@@ -72,12 +80,12 @@ stages:
         addPipelineData: false
 
     - script: |
-        DOCKER_BUILDKIT=1 docker build -t $(stagedImage):$(tag) .
-        docker tag $(stagedImage):$(tag) $(stagedImage):task$(tag)
-        docker tag $(stagedImage):$(tag) $(stagedImage):anchorecli$(tag)
-        docker push $(stagedImage):$(tag)
-        docker push $(stagedImage):task$(tag)
-        docker push $(stagedImage):anchorecli$(tag)
+        DOCKER_BUILDKIT=1 docker build -t $(stageBase) .
+        docker tag $(stageBase) $(stageTask)
+        docker tag $(stagedase) $(stageCli)
+        docker push $(stageBase)
+        docker push $(stageTask)
+        docker push $(stageCli)
 
 #
 # Stage 2 - Scanning
@@ -99,7 +107,7 @@ stages:
 
     - task: AnchoreEnterprise@0
       inputs:
-        image: '$(stagedImage):task$(tag)'
+        image: $(stageTask)
         url: $(anchoreUrl)
         username: $(anchoreUser)
         password: $(anchorepass)
@@ -127,10 +135,10 @@ stages:
       displayName: Install tools for Anchore CLI
 
     - script: |
-        echo "Scanning " $(stagedImage):anchorecli$(tag)
-        anchore-cli image add '$(stagedImage):anchorecli$(tag)' --dockerfile=Dockerfile
-        anchore-cli image wait '$(stagedImage):anchorecli$(tag)'
-        anchore-cli evaluate check '(stagedImage):anchorecli$(tag)'
+        echo "Scanning " $(stageCli)
+        anchore-cli image add $(stageCli) --dockerfile=Dockerfile
+        anchore-cli image wait $(stageCli)
+        anchore-cli evaluate check $(stageCli)
       displayName: Scan using anchore-cli
 
 #
@@ -156,7 +164,7 @@ stages:
           -p $(anchorepass) \
           -r $(anchore_url) \
           -f ./Dockerfile \
-          -g $(imageRepository):inlinescan$(tag)
+          -g $(imageRepository)/inlinescan:$(tag)
       displayName: Scan image and send to engine
 
     - script: |
@@ -173,5 +181,5 @@ stages:
           --u $(anchore_user) \
           --p $(anchorepass) \
           --url $(anchore_url) \
-          evaluate check localbuild/$(imageRepository):inlinescan$(tag)
+          evaluate check localbuild/$(imageRepository)/inlinescan:$(tag)
       displayName: Evaluate the image
