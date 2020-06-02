@@ -82,12 +82,12 @@ stages:
 #
 # Stage 2 - Scanning
 #
-- stage: Scan1
-  displayName: Scan the staged image
+- stage: TaskScan
+  displayName: Anchore Enterprise Task Scan
   dependsOn: Staging
   jobs:
   - job: Scan
-    displayName: Scan
+    displayName: Anchore Enterprise Task Scan
     pool:
       vmImage: $(vmImageName)
     steps:
@@ -108,12 +108,12 @@ stages:
 #
 # Stage 3 - Scanning
 #
-- stage: Scan2
-  displayName: Scan the staged image
+- stage: AnchoreCLI
+  displayName: Anchore CLI Scan
   dependsOn: Staging
   jobs:
   - job: Scan
-    displayName: Scan
+    displayName: Anchore CLI Scan
     pool:
       vmImage: $(vmImageName)
     steps:
@@ -121,6 +121,9 @@ stages:
         python3 -m pip install --upgrade pip setuptools wheel
         pip3 install --upgrade anchorecli
         echo "##vso[task.prependpath]$(HOME)/.local/bin"
+        echo "##vso[task.setvariable variable=ANCHORE_CLI_USER]$(anchoreUser)"
+        echo "##vso[task.setvariable variable=ANCHORE_CLI_PASS]$(anchorepass)"
+        echo "##vso[task.setvariable variable=ANCHORE_CLI_URL]$(anchoreUrl)"
       displayName: Install tools for Anchore CLI
 
     - script: |
@@ -132,11 +135,11 @@ stages:
 #
 # Stage 4 - Scanning
 #
-- stage: Scan3
-  displayName: Scan the staged image
+- stage: InlineScan
+  displayName: Inline Scan
   jobs:
   - job: Scan
-    displayName: Scan
+    displayName: Inline Scan
     pool:
       vmImage: $(vmImageName)
     steps:
@@ -159,6 +162,9 @@ stages:
         python -m pip install --upgrade pip setuptools wheel
         pip install --upgrade anchorecli
         echo "##vso[task.prependpath]${PATH}:/home/vsts/.local/bin"
+        echo "##vso[task.setvariable variable=ANCHORE_CLI_USER]$(anchoreUser)"
+        echo "##vso[task.setvariable variable=ANCHORE_CLI_PASS]$(anchorepass)"
+        echo "##vso[task.setvariable variable=ANCHORE_CLI_URL]$(anchoreUrl)"
       displayName: Configure anchore-cli
 
     - script: |
