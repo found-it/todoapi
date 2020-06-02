@@ -154,11 +154,11 @@ stages:
       vmImage: $(vmImageName)
     steps:
     - script: |
-        DOCKER_BUILDKIT=1 docker build -t $(imageRepository):inlinescan .
+      DOCKER_BUILDKIT=1 docker build -t $(imageRepository)/inlinescan:$(tag) .
       displayName: Build the local image
 
     - script: |
-        docker image ls
+        docker images
         curl -s https://ci-tools.anchore.io/inline_scan-v0.7.0 | bash -s -- \
           analyze \
           -u $(anchore_user) \
@@ -179,8 +179,8 @@ stages:
 
     - script: |
         anchore-cli \
-          --u $(anchore_user) \
+          --u $(anchoreUser) \
           --p $(anchorepass) \
-          --url $(anchore_url) \
+          --url $(anchoreUrl) \
           evaluate check localbuild/$(imageRepository)/inlinescan:$(tag)
       displayName: Evaluate the image
