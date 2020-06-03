@@ -56,6 +56,8 @@ variables:
     value: $(stagedImage)/task:$(tag)
   - name: stageCli
     value: $(stagedImage)/cli:$(tag)
+  - name: inlineImg
+    value: $(imageRepository)/inlinescan:$(tag)
 
 ###########################################################
 
@@ -161,11 +163,11 @@ stages:
         docker images
         curl -s https://ci-tools.anchore.io/inline_scan-v0.7.0 | bash -s -- \
           analyze \
-          -u $(anchore_user) \
+          -u $(anchoreUser) \
           -p $(anchorepass) \
-          -r $(anchore_url) \
+          -r $(anchoreUrl) \
           -f ./Dockerfile \
-          -g $(imageRepository)/inlinescan:$(tag)
+          -g $(inlineImg)
       displayName: Scan image and send to engine
 
     - script: |
@@ -182,5 +184,5 @@ stages:
           --u $(anchoreUser) \
           --p $(anchorepass) \
           --url $(anchoreUrl) \
-          evaluate check localbuild/$(imageRepository)/inlinescan:$(tag)
+          evaluate check localbuild/$(inlineImg)
       displayName: Evaluate the image
