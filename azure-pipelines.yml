@@ -92,7 +92,7 @@ stages:
     - task: Anchore@0
       inputs:
         image: $(stageBase)
-        policyBundle: 'policy-bundle.json'
+        policyBundle: './policy-bundle.json'
 
 
 #
