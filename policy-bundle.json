@@ -1,0 +1,257 @@
+{
+  "blacklisted_images": [],
+  "description": "Policy bundle for Azure Gov Meetup Demo",
+  "id": "87fcc7a5-1833-4d28-97f1-75d71f031744",
+  "last_updated": 1591139355,
+  "mappings": [
+    {
+      "id": "5b6fd909-6df7-4fff-aa56-792ee759802f",
+      "image": {
+        "type": "tag",
+        "value": "*"
+      },
+      "name": "AnchoreTaskTests",
+      "policy_ids": [
+        "4d553b0e-13aa-4f6c-a0a4-43a748483d3f",
+        "f0773a36-bbb4-4922-9567-63fb70a595cc"
+      ],
+      "registry": "*",
+      "repository": "*",
+      "whitelist_ids": [
+        "dc1ffdba-b35d-4d19-99b5-5daa29fffa03"
+      ]
+    }
+  ],
+  "name": "Super Secure Demo Bundle",
+  "policies": [
+    {
+      "comment": "Golang versioning checks",
+      "id": "f0773a36-bbb4-4922-9567-63fb70a595cc",
+      "name": "Golang Checks",
+      "rules": [
+        {
+          "action": "GO",
+          "gate": "retrieved_files",
+          "id": "be0444ae-c023-4731-95df-95ba07c7f959",
+          "params": [
+            {
+              "name": "path",
+              "value": "/usr/local/go/VERSION"
+            },
+            {
+              "name": "check",
+              "value": "match"
+            },
+            {
+              "name": "regex",
+              "value": "go1.14.2"
+            }
+          ],
+          "trigger": "content_regex"
+        },
+        {
+          "action": "STOP",
+          "comment": "Ensure golang is installed where we expected.",
+          "gate": "retrieved_files",
+          "id": "d1a9e808-56ea-4697-bcbd-55f0897d04c5",
+          "params": [
+            {
+              "name": "path",
+              "value": "/usr/local/go/VERSION"
+            }
+          ],
+          "trigger": "content_not_available"
+        },
+        {
+          "action": "GO",
+          "comment": "Ensure the proper golang version.",
+          "gate": "retrieved_files",
+          "id": "e92b1122-6063-40d1-81bc-ab3a7a0ced80",
+          "params": [
+            {
+              "name": "path",
+              "value": "/usr/local/go/VERSION"
+            },
+            {
+              "name": "check",
+              "value": "no_match"
+            },
+            {
+              "name": "regex",
+              "value": "go1.14.2"
+            }
+          ],
+          "trigger": "content_regex"
+        },
+        {
+          "action": "STOP",
+          "comment": "Check that the project is using the right golang version.",
+          "gate": "retrieved_files",
+          "id": "15b5b1ad-704a-4dd7-99ba-8fc2bccce58d",
+          "params": [
+            {
+              "name": "path",
+              "value": "/go/src/todoapi/go.mod"
+            },
+            {
+              "name": "check",
+              "value": "no_match"
+            },
+            {
+              "name": "regex",
+              "value": "1.14"
+            }
+          ],
+          "trigger": "content_regex"
+        }
+      ],
+      "version": "1_0"
+    },
+    {
+      "comment": "Anchore Dockerfile checks",
+      "id": "4d553b0e-13aa-4f6c-a0a4-43a748483d3f",
+      "name": "Dockerfile Checks",
+      "rules": [
+        {
+          "action": "STOP",
+          "gate": "dockerfile",
+          "id": "4f110642-3bbb-4d2e-9a20-b251dd84c0a0",
+          "params": [
+            {
+              "name": "users",
+              "value": "root"
+            },
+            {
+              "name": "type",
+              "value": "blacklist"
+            }
+          ],
+          "trigger": "effective_user"
+        },
+        {
+          "action": "WARN",
+          "comment": "Do not use update instructions on their own line",
+          "gate": "dockerfile",
+          "id": "1ad5c02a-f049-46fb-86a9-453944ab32e4",
+          "params": [
+            {
+              "name": "instruction",
+              "value": "RUN"
+            },
+            {
+              "name": "check",
+              "value": "like"
+            },
+            {
+              "name": "value",
+              "value": "(\\s*/bin/sh\\s*-c\\s*)*\\s*yum.*up(date|grade)\\s*$"
+            }
+          ],
+          "trigger": "instruction"
+        },
+        {
+          "action": "WARN",
+          "comment": "Use COPY instead of ADD",
+          "gate": "dockerfile",
+          "id": "86192c53-487c-4913-a7ab-901c1ef1ea26",
+          "params": [
+            {
+              "name": "instruction",
+              "value": "ADD"
+            },
+            {
+              "name": "check",
+              "value": "exists"
+            }
+          ],
+          "trigger": "instruction"
+        },
+        {
+          "action": "STOP",
+          "comment": "Blacklist common ports",
+          "gate": "dockerfile",
+          "id": "f9348d6f-3fc5-4e7a-87d6-e4a9d84cb95f",
+          "params": [
+            {
+              "name": "ports",
+              "value": "22,23,80,443"
+            },
+            {
+              "name": "type",
+              "value": "blacklist"
+            }
+          ],
+          "trigger": "exposed_ports"
+        },
+        {
+          "action": "STOP",
+          "comment": "Do not run `wget`",
+          "gate": "dockerfile",
+          "id": "31dc65b0-094f-47c2-af5d-46e526b9678c",
+          "params": [
+            {
+              "name": "instruction",
+              "value": "RUN"
+            },
+            {
+              "name": "check",
+              "value": "="
+            },
+            {
+              "name": "value",
+              "value": "wget"
+            }
+          ],
+          "trigger": "instruction"
+        },
+        {
+          "action": "STOP",
+          "comment": "Do not run `curl`",
+          "gate": "dockerfile",
+          "id": "9d6d82c3-13de-4a7c-bdaf-432943d94645",
+          "params": [
+            {
+              "name": "instruction",
+              "value": "RUN"
+            },
+            {
+              "name": "check",
+              "value": "="
+            },
+            {
+              "name": "value",
+              "value": "curl"
+            }
+          ],
+          "trigger": "instruction"
+        }
+      ],
+      "version": "1_0"
+    },
+    {
+      "comment": "Gates for the Universal Basic Image from Repo1",
+      "id": "5849e88e-c6ea-4a1c-9961-b8f05454c733",
+      "name": "Repo1 Checks",
+      "rules": [],
+      "version": "1_0"
+    },
+    {
+      "comment": "",
+      "id": "67b715bf-70d3-4c1b-8df9-3811b755aca5",
+      "name": "DefaultPolicy",
+      "rules": [],
+      "version": "1_0"
+    }
+  ],
+  "version": "1_0",
+  "whitelisted_images": [],
+  "whitelists": [
+    {
+      "comment": "",
+      "id": "dc1ffdba-b35d-4d19-99b5-5daa29fffa03",
+      "items": [],
+      "name": "DefaultWhitelist",
+      "version": "1_0"
+    }
+  ]
+}
