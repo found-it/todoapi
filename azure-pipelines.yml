@@ -90,13 +90,13 @@ stages:
         # docker push $(stageCli)
 
     - task: Anchore@0
-        inputs:
-          image: $(stageBase)
-          stateful: true
-          url: $(anchoreUrl)
-          username: $(anchoreUser)
-          password: $(anchorePass)
-          dockerfile: Dockerfile
+      inputs:
+        image: $(stageBase)
+        stateful: true
+        url: $(anchoreUrl)
+        username: $(anchoreUser)
+        password: $(anchorePass)
+        dockerfile: Dockerfile
 
 
 #
