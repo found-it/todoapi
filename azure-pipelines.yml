@@ -92,7 +92,12 @@ stages:
     - task: Anchore@0
       inputs:
         image: $(stageBase)
-        policyBundle: './policy-bundle.json'
+        customPolicyPath: './policy-bundle.json'
+
+    - script: |
+        echo $(anchoreContentFiles)
+        echo $(anchoreContentOS)
+        echo $(anchorePolicyResults)
 
 
 #
