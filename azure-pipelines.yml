@@ -95,10 +95,11 @@ stages:
         customPolicyPath: './policy-bundle.json'
 
     - script: |
-        echo $(anchoreContentFiles)
-        echo $(anchoreContentOS)
-        echo $(anchorePolicyResults)
-        cat $(anchorePolicyResults)
+        echo $(policyStatus)
+        echo $(billOfMaterials)
+        echo $(vulnerabilities)
+        cat $(billOfMaterials)
+        cat $(vulnerabilities)
 
 
 #
