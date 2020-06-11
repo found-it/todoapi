@@ -84,8 +84,6 @@ stages:
     - script: |
         DOCKER_BUILDKIT=1 docker build -t $(stageBase) .
         ls
-        ls ./anchore-reports
-        rm -rf ./anchore-reports
         # docker tag $(stageBase) $(stageTask)
         # docker tag $(stageBase) $(stageCli)
         # docker push $(stageBase)
