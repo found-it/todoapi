@@ -90,18 +90,18 @@ stages:
         # docker push $(stageTask)
         # docker push $(stageCli)
 
-    # - task: Anchore@0
-    #   inputs:
-    #     image: $(stageBase)
-    #     customPolicyPath: './policy-bundle.json'
-    #     dockerfile: Dockerfile
-    #
-    # - script: |
-    #     echo $(policyStatus)
-    #     echo $(billOfMaterials)
-    #     echo $(vulnerabilities)
-    #     cat $(billOfMaterials)
-    #     cat $(vulnerabilities)
+    - task: Anchore@0
+      inputs:
+        image: $(stageBase)
+        customPolicyPath: './policy-bundle.json'
+        dockerfile: Dockerfile
+
+    - script: |
+        echo $(policyStatus)
+        echo $(billOfMaterials)
+        echo $(vulnerabilities)
+        cat $(billOfMaterials)
+        cat $(vulnerabilities)
 
 
 #
