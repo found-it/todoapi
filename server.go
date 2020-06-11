@@ -296,7 +296,7 @@ func init() {
 
 
 /*
- *  Use Gorilla Mux to handle
+ *  Use Gorilla Mux to handle routes
  */
 func main() {
 
