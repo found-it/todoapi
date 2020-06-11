@@ -93,7 +93,7 @@ stages:
       inputs:
         image: $(stageBase)
         customPolicyPath: './policy-bundle.json'
-        dockerfile: './Dockerfile'
+        dockerfile: Dockerfile
 
     - script: |
         echo $(policyStatus)
