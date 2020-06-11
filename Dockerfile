@@ -13,11 +13,11 @@ RUN go build -o $GOBIN/todoapi
 # Set up a non-root user
 RUN apt-get update                              && \
     mkdir -p /mnt/data                          && \
-    groupadd -r foundit                         && \
-    useradd -r -s /bin/false -g foundit foundit && \
-    chown -R foundit:foundit /mnt/data
+    groupadd -r todoapi                         && \
+    useradd -r -s /bin/false -g todoapi todoapi && \
+    chown -R todoapi:todoapi /mnt/data
 
 EXPOSE 9000
 
-USER foundit
+USER todoapi
 ENTRYPOINT ["/go/bin/todoapi"]
