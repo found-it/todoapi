@@ -96,6 +96,7 @@ stages:
         dockerfile: Dockerfile
 
     - script: |
+        ls
         echo $(policyStatus)
         echo $(billOfMaterials)
         echo $(vulnerabilities)
