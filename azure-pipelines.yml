@@ -97,7 +97,7 @@ stages:
         failBuild: true
         customPolicyPath: './policy-bundle.json'
         includeAppPackages: true
-        anchoreVersion: 'latest'
+        anchoreVersion: 'v0.6.0'
 
     - script: |
         ls
