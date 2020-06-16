@@ -30,8 +30,7 @@ variables:
   - name: dockerfilePath
     value: 'Dockerfile'
   - name: tag
-    value: '$(Build.SourceVersion)'
-    # value: '$(Build.BuildId)'
+    value: '$(Build.BuildId)'
   - name: prodImage
     value: '$(prodRegistry)/$(imageRepository)'
 
@@ -96,8 +95,7 @@ stages:
         dockerfile: 'Dockerfile'
         failBuild: true
         customPolicyPath: './policy-bundle.json'
-        includeAppPackages: true
-        anchoreVersion: 'v0.6.0'
+        anchoreVersion: '0.7.0'
 
     - script: |
         ls
