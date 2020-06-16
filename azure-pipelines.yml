@@ -92,16 +92,18 @@ stages:
 
     - task: Anchore@0
       inputs:
-        image: $(stageBase)
+        image: '$(stageBase)'
+        dockerfile: 'Dockerfile'
+        failBuild: true
         customPolicyPath: './policy-bundle.json'
-        dockerfile: Dockerfile
+        includeAppPackages: true
+        anchoreVersion: 'latest'
 
     - script: |
         ls
         echo $(policyStatus)
         echo $(billOfMaterials)
         echo $(vulnerabilities)
-        cat $(billOfMaterials)
         cat $(vulnerabilities)
 
 
