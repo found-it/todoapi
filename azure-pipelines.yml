@@ -98,7 +98,6 @@ stages:
         anchoreVersion: 'latest'
 
     - script: |
-        ls
         echo $(policyStatus)
         echo $(billOfMaterials)
         echo $(vulnerabilities)
