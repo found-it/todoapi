@@ -93,7 +93,7 @@ stages:
       inputs:
         image: '$(stageBase)'
         dockerfile: 'Dockerfile'
-        failBuild: true
+        failBuild: false
         customPolicyPath: './policy-bundle.json'
         anchoreVersion: 'latest'
         printVulnerabilityReport: false
