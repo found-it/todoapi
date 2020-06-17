@@ -96,6 +96,7 @@ stages:
         failBuild: true
         customPolicyPath: './policy-bundle.json'
         anchoreVersion: 'latest'
+        printVulnerabilityReport: false
 
     - script: |
         echo $(policyStatus)
