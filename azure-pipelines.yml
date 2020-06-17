@@ -95,7 +95,7 @@ stages:
         dockerfile: 'Dockerfile'
         failBuild: true
         customPolicyPath: './policy-bundle.json'
-        anchoreVersion: '0.7.0'
+        anchoreVersion: 'latest'
 
     - script: |
         ls
