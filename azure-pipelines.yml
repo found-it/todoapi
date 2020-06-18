@@ -1,6 +1,7 @@
 
 trigger:
-- dev
+  - master
+  - dev
 
 stages:
 - stage: Staging
