@@ -1,204 +1,29 @@
-####
-#
-# Azure Pipeline for Todo API Server
-#
-# Displays usage of the Anchore integration with Azure DevOps
-#
-####
 
 trigger:
-- master
 - dev
 
-resources:
-- repo: self
-
-variables:
-  # Container registry service connection established during pipeline creation
-  - name: acrProdServiceConnection
-    value: demoProduction
-  - name: prodRegistry
-    value: 'anchoredemo.azurecr.io'
-
-  - name: acrStagingServiceConnection
-    value: demoStaging
-  - name: stagingRegistry
-    value: 'demostaging.azurecr.io'
-
-  - name: imageRepository
-    value: 'todoapi'
-  - name: dockerfilePath
-    value: 'Dockerfile'
-  - name: tag
-    value: '$(Build.BuildId)'
-  - name: prodImage
-    value: '$(prodRegistry)/$(imageRepository)'
-
-  - name: stagedImage
-    value: '$(stagingRegistry)/$(imageRepository)'
-
-  # Agent VM image name
-  - name: vmImageName
-    value: 'ubuntu-latest'
-
-  # Anchore stuff
-  - name: anchoreUser
-    value: 'admin'
-  - name: anchoreUrl
-    value: 'http://23.100.36.77/v1'
-  - group: AnchoreCredentials
-    # anchorepass ^
-
-  - name: stageBase
-    value: $(stagedImage):$(tag)
-  - name: stageTask
-    value: $(stagedImage)/task:$(tag)
-  - name: stageCli
-    value: $(stagedImage)/cli:$(tag)
-  - name: inlineImg
-    value: $(imageRepository)/inlinescan:$(tag)
-
-##########################################################
-
 stages:
-
-#
-# Stage 1 - Staging
-#
 - stage: Staging
   displayName: Build and push to staging registry
   jobs:
   - job: Staging
     displayName: Staging
-    pool:
-      vmImage: $(vmImageName)
     steps:
-    - task: Docker@2
-      displayName: Build and push an image to container registry
-      inputs:
-        command: login
-        containerRegistry: $(acrStagingServiceConnection)
-        addPipelineData: false
-
     - script: |
-        DOCKER_BUILDKIT=1 docker build -t $(stageBase) .
-        ls
-        # docker tag $(stageBase) $(stageTask)
-        # docker tag $(stageBase) $(stageCli)
-        # docker push $(stageBase)
-        # docker push $(stageTask)
-        # docker push $(stageCli)
+        docker build -t localbuild/testimage:ci -f Dockerfile .
 
     - task: Anchore@0
       inputs:
-        image: '$(stageBase)'
-        dockerfile: 'Dockerfile'
-        failBuild: false
-        customPolicyPath: './policy-bundle.json'
-        anchoreVersion: 'latest'
-        printVulnerabilityReport: false
+        image: 'localbuild/testimage:ci'
+        customPolicyPath: '.anchore/policy.json'
+        dockerfile: Dockerfile
+        failBuild: true
 
     - script: |
         echo $(policyStatus)
+
         echo $(billOfMaterials)
+        cat $(billOfMaterials)
+
         echo $(vulnerabilities)
         cat $(vulnerabilities)
-
-
-#
-# Stage 2 - Scanning
-#
-# - stage: TaskScan
-#   displayName: Anchore Enterprise Task Scan
-#   dependsOn: Staging
-#   jobs:
-#   - job: Scan
-#     displayName: Anchore Enterprise Task Scan
-#     pool:
-#       vmImage: $(vmImageName)
-#     steps:
-#     - script: |
-#         python3 -m pip install --upgrade pip setuptools wheel
-#         pip3 install --upgrade anchorecli
-#         echo "##vso[task.prependpath]$(HOME)/.local/bin"
-#       displayName: Install tools for Anchore CLI
-#
-#     - task: AnchoreEnterprise@0
-#       inputs:
-#         image: $(stageTask)
-#         url: $(anchoreUrl)
-#         username: $(anchoreUser)
-#         password: $(anchorepass)
-#         dockerfile: Dockerfile
-#
-# #
-# # Stage 3 - Scanning
-# #
-# - stage: AnchoreCLI
-#   displayName: Anchore CLI Scan
-#   dependsOn: TaskScan
-#   jobs:
-#   - job: Scan
-#     displayName: Anchore CLI Scan
-#     pool:
-#       vmImage: $(vmImageName)
-#     steps:
-#     - script: |
-#         python3 -m pip install --upgrade pip setuptools wheel
-#         pip3 install --upgrade anchorecli
-#         echo "##vso[task.prependpath]$(HOME)/.local/bin"
-#         echo "##vso[task.setvariable variable=ANCHORE_CLI_USER]$(anchoreUser)"
-#         echo "##vso[task.setvariable variable=ANCHORE_CLI_PASS]$(anchorepass)"
-#         echo "##vso[task.setvariable variable=ANCHORE_CLI_URL]$(anchoreUrl)"
-#       displayName: Install tools for Anchore CLI
-#
-#     - script: |
-#         echo "Scanning " $(stageCli)
-#         anchore-cli image add $(stageCli) --dockerfile=Dockerfile --force
-#         anchore-cli image wait $(stageCli)
-#         anchore-cli evaluate check $(stageCli)
-#       displayName: Scan using anchore-cli
-#
-# #
-# # Stage 4 - Scanning
-# #
-# - stage: InlineScan
-#   displayName: Inline Scan
-#   dependsOn: AnchoreCLI
-#   jobs:
-#   - job: Scan
-#     displayName: Inline Scan
-#     pool:
-#       vmImage: $(vmImageName)
-#     steps:
-#     - script: |
-#         DOCKER_BUILDKIT=1 docker build -t $(imageRepository)/inlinescan:$(tag) .
-#       displayName: Build the local image
-#
-#     - script: |
-#         docker images
-#         curl -s https://ci-tools.anchore.io/inline_scan-v0.7.0 | bash -s -- \
-#           analyze \
-#           -u $(anchoreUser) \
-#           -p $(anchorepass) \
-#           -r $(anchoreUrl) \
-#           -f ./Dockerfile \
-#           -g $(inlineImg)
-#       displayName: Scan image and send to engine
-#
-#     - script: |
-#         python -m pip install --upgrade pip setuptools wheel
-#         pip install --upgrade anchorecli
-#         echo "##vso[task.prependpath]${PATH}:/home/vsts/.local/bin"
-#         echo "##vso[task.setvariable variable=ANCHORE_CLI_USER]$(anchoreUser)"
-#         echo "##vso[task.setvariable variable=ANCHORE_CLI_PASS]$(anchorepass)"
-#         echo "##vso[task.setvariable variable=ANCHORE_CLI_URL]$(anchoreUrl)"
-#       displayName: Configure anchore-cli
-#
-#     - script: |
-#         anchore-cli \
-#           --u $(anchoreUser) \
-#           --p $(anchorepass) \
-#           --url $(anchoreUrl) \
-#           evaluate check localbuild/$(inlineImg)
-#       displayName: Evaluate the image
