@@ -18,7 +18,7 @@ stages:
         image: 'localbuild/testimage:ci'
         customPolicyPath: '.anchore/policy.json'
         dockerfile: Dockerfile
-        failBuild: true
+        failBuild: false
 
     - script: |
         echo $(policyStatus)
