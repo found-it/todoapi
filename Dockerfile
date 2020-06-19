@@ -1,4 +1,4 @@
-FROM golang:stretch
+FROM golang:alpine
 
 ENV GOBIN=$GOPATH/bin
 ENV PATH=$PATH:$GOBIN
@@ -11,13 +11,19 @@ COPY . ./
 RUN go build -o $GOBIN/todoapi
 
 # Set up a non-root user
-RUN apt-get update                              && \
-    mkdir -p /mnt/data                          && \
-    groupadd -r todo                         && \
-    useradd -r -s /bin/false -g todo todo && \
-    chown -R todo:todo /mnt/data
+RUN apk update                      && \
+    apk add --no-cache git          && \
+    mkdir -p /mnt/data              && \
+    addgroup --gid 2323 "foundit"   && \
+    adduser --disabled-password \
+            --home "/home/foundit" \
+            --ingroup "foundit" \
+            --no-create-home \
+            --uid 2324 \
+            "foundit"               && \
+    chown -R foundit:foundit /mnt/data
 
 EXPOSE 9000
 
-USER todo
+USER foundit
 ENTRYPOINT ["/go/bin/todoapi"]
