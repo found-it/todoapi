@@ -1,4 +1,4 @@
-FROM golang:alpine
+FROM golang:rc-buster
 
 ENV GOBIN=$GOPATH/bin
 ENV PATH=$PATH:$GOBIN

@@ -3,6 +3,9 @@ trigger:
   - master
   - dev
 
+variables:
+  image_name: 'localbuild/testimage:ci'
+
 stages:
 - stage: Staging
   displayName: Build and push to staging registry
@@ -11,11 +14,11 @@ stages:
     displayName: Staging
     steps:
     - script: |
-        docker build -t localbuild/testimage:ci -f Dockerfile .
+        docker build -t "$(image_name)" -f Dockerfile .
 
     - task: Anchore@0
       inputs:
-        image: 'localbuild/testimage:ci'
+        image: $(image_name)
         customPolicyPath: '.anchore/policy.json'
         anchoreVersion: 'v0.8.0'
         dockerfile: Dockerfile
