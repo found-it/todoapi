@@ -11,17 +11,17 @@ COPY . ./
 RUN go build -o $GOBIN/todoapi
 
 # Set up a non-root user
-RUN apk update                      && \
-    apk add --no-cache git          && \
+RUN apt-get update                  && \
     mkdir -p /mnt/data              && \
-    addgroup --gid 2323 "foundit"   && \
-    adduser --disabled-password \
-            --home "/home/foundit" \
-            --ingroup "foundit" \
-            --no-create-home \
-            --uid 2324 \
-            "foundit"               && \
+    useradd -ms /bin/bash foundit   && \
     chown -R foundit:foundit /mnt/data
+    # addgroup --gid 2323 "foundit"   && \
+    # adduser --disabled-password \
+    #         --home "/home/foundit" \
+    #         --ingroup "foundit" \
+    #         --no-create-home \
+    #         --uid 2324 \
+    #         "foundit"               && \
 
 EXPOSE 9000
 
