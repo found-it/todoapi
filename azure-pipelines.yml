@@ -17,6 +17,7 @@ stages:
       inputs:
         image: 'localbuild/testimage:ci'
         customPolicyPath: '.anchore/policy.json'
+        anchoreVersion: 'v0.8.0'
         dockerfile: Dockerfile
         failBuild: false
 
