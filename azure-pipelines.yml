@@ -26,7 +26,7 @@ stages:
         image: "$(image_name):$(tag)"
         anchoreVersion: "v0.8.0"
         dockerfile: Dockerfile
-        failBuild: false
+        failBuild: true
         includeAppPackages: true
 
     - script: |
