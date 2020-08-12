@@ -28,7 +28,7 @@ stages:
         anchoreVersion: "v0.8.0"
         dockerfile: Dockerfile
         failBuild: false
-        includeAppPackages: true
+        includeAppPackages: false
 
     - script: |
         echo $(policyStatus)
