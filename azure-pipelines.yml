@@ -24,7 +24,6 @@ stages:
     - task: Anchore@0
       inputs:
         image: "$(image_name):$(tag)"
-        customPolicyPath: ".anchore/policy.json"
         anchoreVersion: "v0.8.0"
         dockerfile: Dockerfile
         failBuild: false
