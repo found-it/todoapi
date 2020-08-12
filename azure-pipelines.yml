@@ -4,7 +4,8 @@ trigger:
   - dev
 
 variables:
-  image_name: 'localbuild/testimage:ci'
+  image_name: "localbuild/testimage"
+  tag: "ci"
 
 stages:
 - stage: Staging
@@ -13,14 +14,18 @@ stages:
   - job: Staging
     displayName: Staging
     steps:
-    - script: |
-        docker build -t "$(image_name)" -f Dockerfile .
+
+    - task: Docker@2
+      inputs:
+        command: build
+        repository: "$(image_name)"
+        tags: "$(tag)"
 
     - task: Anchore@0
       inputs:
-        image: $(image_name)
-        customPolicyPath: '.anchore/policy.json'
-        anchoreVersion: 'v0.8.0'
+        image: "$(image_name):$(tag)"
+        customPolicyPath: ".anchore/policy.json"
+        anchoreVersion: "v0.8.0"
         dockerfile: Dockerfile
         failBuild: false
         includeAppPackages: true
