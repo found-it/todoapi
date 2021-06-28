@@ -38,3 +38,15 @@ stages:
 
         echo $(vulnerabilities)
         cat $(vulnerabilities)
+
+    - task: Docker@2
+      inputs:
+        command: login
+        containerRegistry: dockerhub
+
+    - task: Docker@2
+      inputs:
+        command: buildAndPush
+        containerRegistry: dockerhub
+        repository: "$(prodRegistry)"
+        tags: "$(prodTag)"
